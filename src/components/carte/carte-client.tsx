@@ -152,18 +152,25 @@ export function CarteClient() {
         try {
           const data = JSON.parse(event.data);
 
-          if (data.type === "connected") {
-            setStatus("connected");
-            setError(null);
-            return;
-          }
-
           if (data.type === "error") {
             setStatus("error");
             setError(data.message || "Erreur du flux AIS");
             return;
           }
 
+          // Snapshot bulk: charge tous les navires en cache d'un coup
+          if (data.type === "snapshot") {
+            setStatus("connected");
+            setError(null);
+            const bulk = new Map<number, VesselData>();
+            for (const v of data.vessels) {
+              bulk.set(v.mmsi, v);
+            }
+            setVessels(bulk);
+            return;
+          }
+
+          // Mise a jour individuelle en temps reel
           if (data.type === "vessel") {
             setStatus("connected");
             setVessels((prev) => {
