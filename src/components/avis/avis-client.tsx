@@ -224,7 +224,7 @@ function NtsCard({ notice }: { notice: NtsNotice }) {
 
               {/* Lien vers la fiche EuRIS */}
               <a
-                href={`https://www.eurisportal.eu/nts/details/${notice.id}`}
+                href={`https://www.eurisportal.eu/nts-detail?ntsnumber=${encodeURIComponent(notice.number)}&organisation=${encodeURIComponent(notice.organisation)}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-1.5 mt-1 text-sm text-blue-600 hover:text-blue-800 hover:underline"
