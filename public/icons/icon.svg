@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none">
+  <rect width="512" height="512" rx="96" fill="#2563eb"/>
+  <!-- Boat hull -->
+  <path d="M128 320 C128 320 160 384 256 384 C352 384 384 320 384 320 L128 320Z" fill="white" opacity="0.9"/>
+  <!-- Mast -->
+  <rect x="248" y="128" width="16" height="200" rx="4" fill="white"/>
+  <!-- Sail -->
+  <path d="M256 148 L352 296 L256 296 Z" fill="white" opacity="0.8"/>
+  <path d="M256 168 L176 296 L256 296 Z" fill="white" opacity="0.6"/>
+  <!-- Flag -->
+  <path d="M256 128 L288 140 L256 152 Z" fill="#fbbf24"/>
+  <!-- Wave -->
+  <path d="M96 360 Q144 340 192 360 Q240 380 288 360 Q336 340 384 360 Q416 374 416 374" stroke="white" stroke-width="8" fill="none" opacity="0.5" stroke-linecap="round"/>
+  <!-- Cherry (La Cerise) -->
+  <circle cx="340" cy="180" r="20" fill="#ef4444"/>
+  <path d="M340 160 Q350 130 330 120" stroke="#16a34a" stroke-width="4" fill="none" stroke-linecap="round"/>
+  <ellipse cx="328" cy="118" rx="12" ry="6" fill="#16a34a" transform="rotate(-20 328 118)"/>
+</svg>
