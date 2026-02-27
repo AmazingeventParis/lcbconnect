@@ -11,6 +11,7 @@ import {
   Clock,
   FileText,
   Building2,
+  ExternalLink,
 } from "lucide-react";
 import { format, isPast } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -220,6 +221,17 @@ function NtsCard({ notice }: { notice: NtsNotice }) {
                   </div>
                 </div>
               </div>
+
+              {/* Lien vers la fiche EuRIS */}
+              <a
+                href={`https://www.eurisportal.eu/nts/details/${notice.id}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 mt-1 text-sm text-blue-600 hover:text-blue-800 hover:underline"
+              >
+                <ExternalLink className="h-3.5 w-3.5" />
+                Voir la fiche complete sur EuRIS
+              </a>
             </div>
           </div>
         )}
