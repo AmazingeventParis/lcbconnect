@@ -18,7 +18,15 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Search, Users, MessageSquarePlus, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import type { Profile } from "@/lib/supabase/types";
+
+interface Member {
+  id: string;
+  full_name: string;
+  role: string;
+  status: string;
+  boat_name: string | null;
+  avatar_url: string | null;
+}
 
 interface NewConversationDialogProps {
   open: boolean;
@@ -44,42 +52,39 @@ export function NewConversationDialog({
 }: NewConversationDialogProps) {
   const supabase = createClient();
   const [search, setSearch] = useState("");
-  const [members, setMembers] = useState<Profile[]>([]);
+  const [members, setMembers] = useState<Member[]>([]);
   const [loading, setLoading] = useState(false);
   const [creating, setCreating] = useState(false);
   const [isGroupMode, setIsGroupMode] = useState(false);
   const [groupName, setGroupName] = useState("");
   const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
 
-  // Fetch approved members
+  // Fetch approved members via server API (bypasses RLS issues)
   const fetchMembers = useCallback(async () => {
     setLoading(true);
-    const query = (supabase as any)
-      .from("lcb_profiles")
-      .select("*")
-      .eq("status", "approved")
-      .neq("id", currentUserId)
-      .order("full_name", { ascending: true })
-      .limit(50);
+    try {
+      const params = new URLSearchParams();
+      if (search.trim()) params.set("search", search.trim());
 
-    if (search.trim()) {
-      query.ilike("full_name", `%${search.trim()}%`);
-    }
-
-    const { data, error } = await query;
-    if (error) {
-      toast.error("Erreur lors du chargement des membres");
-    } else {
-      setMembers(data ?? []);
+      const res = await fetch(`/api/members?${params}`);
+      if (res.ok) {
+        const data = await res.json();
+        setMembers(data.members ?? []);
+      } else {
+        toast.error("Erreur lors du chargement des membres");
+        setMembers([]);
+      }
+    } catch {
+      toast.error("Erreur de connexion");
+      setMembers([]);
     }
     setLoading(false);
-  }, [supabase, currentUserId, search]);
+  }, [search]);
 
   useEffect(() => {
     if (open) {
       fetchMembers();
     } else {
-      // Reset state on close
       setSearch("");
       setSelectedUsers([]);
       setIsGroupMode(false);
@@ -99,7 +104,6 @@ export function NewConversationDialog({
   const handleCreateDirectConversation = async (otherUserId: string) => {
     setCreating(true);
     try {
-      // Check if a 1:1 conversation already exists between these two users
       const { data: myConversations } = await (supabase as any)
         .from("lcb_conversation_members")
         .select("conversation_id")
@@ -121,7 +125,6 @@ export function NewConversationDialog({
         );
 
         if (sharedConvIds.length > 0) {
-          // Check if any of these shared conversations are 1:1 (not group)
           const { data: existingConvs } = await (supabase as any)
             .from("lcb_conversations")
             .select("id")
@@ -137,7 +140,6 @@ export function NewConversationDialog({
         }
       }
 
-      // Create new conversation
       const { data: conv, error: convError } = await (supabase as any)
         .from("lcb_conversations")
         .insert({
@@ -149,7 +151,6 @@ export function NewConversationDialog({
 
       if (convError) throw convError;
 
-      // Add both members
       const { error: membersError } = await (supabase as any)
         .from("lcb_conversation_members")
         .insert([
@@ -171,8 +172,8 @@ export function NewConversationDialog({
 
   // Create group conversation
   const handleCreateGroup = async () => {
-    if (selectedUsers.length < 2) {
-      toast.error("Selectionnez au moins 2 membres pour un groupe");
+    if (selectedUsers.length < 1) {
+      toast.error("Selectionnez au moins 1 membre pour un groupe");
       return;
     }
     if (!groupName.trim()) {
@@ -195,7 +196,6 @@ export function NewConversationDialog({
 
       if (convError) throw convError;
 
-      // Add current user + selected members
       const memberInserts = [currentUserId, ...selectedUsers].map(
         (userId) => ({
           conversation_id: conv.id,
@@ -351,11 +351,12 @@ export function NewConversationDialog({
         {isGroupMode && (
           <Button
             onClick={handleCreateGroup}
-            disabled={creating || selectedUsers.length < 2 || !groupName.trim()}
+            disabled={creating || selectedUsers.length < 1 || !groupName.trim()}
             className="w-full"
           >
             {creating && <Loader2 className="size-4 mr-2 animate-spin" />}
-            Creer le groupe ({selectedUsers.length} membres)
+            Creer le groupe ({selectedUsers.length} membre
+            {selectedUsers.length > 1 ? "s" : ""} + vous)
           </Button>
         )}
 
