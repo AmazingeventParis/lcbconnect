@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
-import { Loader2, Ship, Wifi, WifiOff } from "lucide-react";
+import { Loader2, Ship, Wifi, WifiOff, AlertTriangle } from "lucide-react";
 
 // Dynamic import of react-leaflet (requires window)
 const MapContainer = dynamic(
@@ -31,30 +31,17 @@ interface VesselData {
   course: number;
   heading: number;
   timestamp: string;
-  shipType: number;
 }
 
 const AIS_API_KEY = "2be1c5db740b0c94f6db08696ed8cf6c1e748bec";
 
-// Bounding boxes covering French waterways & nearby European waters
+// Bounding box covering France/Europe waterways
 const BOUNDING_BOXES = [
-  // France metropolitan - expanded to cover inland waterways
   [
     [42.0, -5.0],
     [51.5, 8.5],
   ],
 ];
-
-function getShipTypeName(type: number): string {
-  if (type >= 70 && type <= 79) return "Cargo";
-  if (type >= 80 && type <= 89) return "Tanker";
-  if (type >= 60 && type <= 69) return "Passager";
-  if (type >= 40 && type <= 49) return "High Speed";
-  if (type >= 30 && type <= 39) return "Peche";
-  if (type >= 20 && type <= 29) return "Remorqueur";
-  if (type === 0) return "Inconnu";
-  return `Type ${type}`;
-}
 
 function CarteMap({
   vessels,
@@ -69,7 +56,8 @@ function CarteMap({
     iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
     iconRetinaUrl:
       "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
-    shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
+    shadowUrl:
+      "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
     iconSize: [25, 41],
     iconAnchor: [12, 41],
     popupAnchor: [1, -34],
@@ -102,10 +90,6 @@ function CarteMap({
                 <span className="text-slate-500">MMSI:</span> {vessel.mmsi}
               </p>
               <p>
-                <span className="text-slate-500">Type:</span>{" "}
-                {getShipTypeName(vessel.shipType)}
-              </p>
-              <p>
                 <span className="text-slate-500">Vitesse:</span>{" "}
                 {vessel.speed.toFixed(1)} noeuds
               </p>
@@ -128,17 +112,19 @@ function CarteMap({
 export function CarteClient() {
   const [vessels, setVessels] = useState<Map<number, VesselData>>(new Map());
   const [connected, setConnected] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
-  const [leafletLib, setLeafletLib] = useState<typeof import("leaflet") | null>(
-    null
-  );
+  const [leafletLib, setLeafletLib] = useState<
+    typeof import("leaflet") | null
+  >(null);
   const wsRef = useRef<WebSocket | null>(null);
+  const cancelledRef = useRef(false);
+  const reconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Load leaflet CSS and lib on mount
   useEffect(() => {
     setMounted(true);
 
-    // Add leaflet CSS via link tag
     if (!document.querySelector('link[href*="leaflet"]')) {
       const link = document.createElement("link");
       link.rel = "stylesheet";
@@ -146,82 +132,124 @@ export function CarteClient() {
       document.head.appendChild(link);
     }
 
-    // Import leaflet library
     import("leaflet").then((L) => {
       setLeafletLib(L);
     });
   }, []);
 
-  const connectWebSocket = useCallback(() => {
-    if (wsRef.current?.readyState === WebSocket.OPEN) return;
-
-    const ws = new WebSocket("wss://stream.aisstream.io/v0/stream");
-    wsRef.current = ws;
-
-    ws.onopen = () => {
-      setConnected(true);
-      const subscribeMsg = {
-        APIKey: AIS_API_KEY,
-        BoundingBoxes: BOUNDING_BOXES,
-        FilterMessageTypes: ["PositionReport"],
-      };
-      ws.send(JSON.stringify(subscribeMsg));
-    };
-
-    ws.onmessage = (event) => {
-      try {
-        const data = JSON.parse(event.data);
-        if (data.MessageType === "PositionReport") {
-          const pos = data.Message?.PositionReport;
-          const meta = data.MetaData;
-          if (pos && meta) {
-            const vessel: VesselData = {
-              mmsi: meta.MMSI,
-              name: meta.ShipName?.trim() || "",
-              lat: pos.Latitude,
-              lng: pos.Longitude,
-              speed: pos.Sog ?? 0,
-              course: pos.Cog ?? 0,
-              heading: pos.TrueHeading ?? 0,
-              timestamp: meta.time_utc || new Date().toISOString(),
-              shipType: meta.ShipType ?? 0,
-            };
-            setVessels((prev) => {
-              const next = new Map(prev);
-              next.set(vessel.mmsi, vessel);
-              return next;
-            });
-          }
-        }
-      } catch {
-        // Ignore malformed messages
-      }
-    };
-
-    ws.onclose = () => {
-      setConnected(false);
-      // Reconnect after 5 seconds
-      setTimeout(() => {
-        connectWebSocket();
-      }, 5000);
-    };
-
-    ws.onerror = () => {
-      ws.close();
-    };
-  }, []);
-
+  // WebSocket connection
   useEffect(() => {
-    connectWebSocket();
+    cancelledRef.current = false;
+
+    function connect() {
+      if (cancelledRef.current) return;
+
+      // Close any existing connection
+      if (wsRef.current) {
+        try {
+          wsRef.current.close();
+        } catch {
+          // ignore
+        }
+        wsRef.current = null;
+      }
+
+      setError(null);
+
+      let ws: WebSocket;
+      try {
+        ws = new WebSocket("wss://stream.aisstream.io/v0/stream");
+      } catch (e) {
+        setError(`Impossible de creer la connexion WebSocket: ${e}`);
+        return;
+      }
+      wsRef.current = ws;
+
+      ws.onopen = () => {
+        if (cancelledRef.current) {
+          ws.close();
+          return;
+        }
+        setConnected(true);
+        setError(null);
+        ws.send(
+          JSON.stringify({
+            APIKey: AIS_API_KEY,
+            BoundingBoxes: BOUNDING_BOXES,
+            FilterMessageTypes: ["PositionReport"],
+          })
+        );
+      };
+
+      ws.onmessage = (event) => {
+        if (cancelledRef.current) return;
+        try {
+          const data = JSON.parse(event.data);
+          if (data.MessageType === "PositionReport") {
+            const pos = data.Message?.PositionReport;
+            const meta = data.MetaData;
+            if (pos && meta) {
+              const vessel: VesselData = {
+                mmsi: meta.MMSI,
+                name: meta.ShipName?.trim() || "",
+                lat: pos.Latitude,
+                lng: pos.Longitude,
+                speed: pos.Sog ?? 0,
+                course: pos.Cog ?? 0,
+                heading: pos.TrueHeading ?? 0,
+                timestamp: meta.time_utc || new Date().toISOString(),
+              };
+              setVessels((prev) => {
+                const next = new Map(prev);
+                next.set(vessel.mmsi, vessel);
+                return next;
+              });
+            }
+          }
+        } catch {
+          // Ignore parse errors
+        }
+      };
+
+      ws.onerror = () => {
+        if (cancelledRef.current) return;
+        setError("Erreur de connexion WebSocket — nouvelle tentative dans 5s...");
+      };
+
+      ws.onclose = (event) => {
+        if (cancelledRef.current) return;
+        setConnected(false);
+        if (!error) {
+          setError(
+            `Connexion fermee (code ${event.code}) — nouvelle tentative dans 5s...`
+          );
+        }
+        reconnectTimerRef.current = setTimeout(() => {
+          if (!cancelledRef.current) {
+            connect();
+          }
+        }, 5000);
+      };
+    }
+
+    connect();
 
     return () => {
+      cancelledRef.current = true;
+      if (reconnectTimerRef.current) {
+        clearTimeout(reconnectTimerRef.current);
+        reconnectTimerRef.current = null;
+      }
       if (wsRef.current) {
-        wsRef.current.onclose = null; // Prevent reconnect on cleanup
-        wsRef.current.close();
+        try {
+          wsRef.current.close();
+        } catch {
+          // ignore
+        }
         wsRef.current = null;
       }
     };
-  }, [connectWebSocket]);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (!mounted) {
     return (
@@ -260,6 +288,14 @@ export function CarteClient() {
           </div>
         </div>
       </div>
+
+      {/* Error banner */}
+      {error && (
+        <div className="flex items-center gap-2 px-4 py-2 bg-amber-50 border-b border-amber-200 text-amber-800 text-sm">
+          <AlertTriangle className="size-4 shrink-0" />
+          {error}
+        </div>
+      )}
 
       {/* Map */}
       <div className="flex-1 relative">
