@@ -2,7 +2,6 @@ import { NextResponse } from "next/server";
 
 const EURIS_BASE = "https://www.eurisportal.eu/api/v3/nts";
 
-// Voies navigables Ile-de-France et region parisienne
 const IDF_FAIRWAYS = ["seine", "marne", "oise", "val de loire - seine"];
 
 export async function GET() {
@@ -15,7 +14,7 @@ export async function GET() {
     });
 
     const res = await fetch(`${EURIS_BASE}?${params}`, {
-      next: { revalidate: 300 }, // Cache 5 minutes
+      next: { revalidate: 300 },
     });
 
     if (!res.ok) {
@@ -28,40 +27,38 @@ export async function GET() {
     const data = await res.json();
     const items = (data.items || []) as Record<string, unknown>[];
 
-    // Filtrer pour les voies IDF
+    const now = new Date();
+
     const idfItems = items.filter((item) => {
       const fairways = item.fairways as string[] | undefined;
       if (!fairways || fairways.length === 0) return false;
-      return fairways.some((fw) =>
+      const isIdf = fairways.some((fw) =>
         IDF_FAIRWAYS.includes(fw.toLowerCase())
       );
-    });
-
-    // Filtrer les avis expires
-    const now = new Date();
-    const activeItems = idfItems.filter((item) => {
+      if (!isIdf) return false;
       const dateEnd = item.dateEnd as string | undefined;
-      if (!dateEnd || dateEnd === "9999-12-31") return true;
-      return new Date(dateEnd) >= now;
+      if (dateEnd && dateEnd !== "9999-12-31" && new Date(dateEnd) < now) return false;
+      return true;
     });
 
-    const notices = activeItems.map((item) => {
-      // Titre en francais
+    const notices = idfItems.map((item) => {
       let titleFr = item.title as string;
+      let tooltipFr = "";
       try {
-        const titles = JSON.parse(
-          (item.multilanguageTitles as string) || "{}"
-        );
+        const titles = JSON.parse((item.multilanguageTitles as string) || "{}");
         if (titles.fr) titleFr = titles.fr;
-      } catch {
-        /* use default */
-      }
+      } catch { /* */ }
+      try {
+        const tooltips = JSON.parse((item.multilanguageTooltips as string) || "{}");
+        if (tooltips.fr) tooltipFr = tooltips.fr;
+      } catch { /* */ }
 
       return {
         id: `${item.headerId}_${item.sectionId}`,
         title: titleFr,
+        tooltip: tooltipFr,
         number: item.number,
-        organisation: item.organisation,
+        organisation: item.organisation || item.originator,
         dateIssue: item.dateIssue,
         dateStart: item.dateStart,
         dateEnd: item.dateEnd,

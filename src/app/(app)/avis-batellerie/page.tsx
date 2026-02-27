@@ -13,15 +13,5 @@ export default async function AvisBatelleriePage() {
     redirect("/login");
   }
 
-  const { data: profile } = await supabase
-    .from("lcb_profiles")
-    .select("*")
-    .eq("id", user.id)
-    .single();
-
-  if (!profile) {
-    redirect("/login");
-  }
-
-  return <AvisClient profile={profile} />;
+  return <AvisClient />;
 }
