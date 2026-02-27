@@ -8,11 +8,14 @@ import {
   Check,
   Search,
   Users,
-  UserCheck,
-  UserX,
-  Clock,
   X,
   Loader2,
+  MoreHorizontal,
+  Ban,
+  Trash2,
+  UserCheck,
+  UserX,
+  RotateCcw,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -42,6 +45,23 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface MembersManagementProps {
   profile: Profile;
@@ -52,14 +72,16 @@ type SortOrder = "asc" | "desc";
 
 const STATUS_LABELS: Record<string, string> = {
   pending: "En attente",
-  approved: "Approuvé",
+  approved: "Actif",
   rejected: "Rejeté",
+  suspended: "Suspendu",
 };
 
 const STATUS_COLORS: Record<string, string> = {
   pending: "bg-amber-100 text-amber-800",
   approved: "bg-green-100 text-green-800",
   rejected: "bg-red-100 text-red-800",
+  suspended: "bg-orange-100 text-orange-800",
 };
 
 const ROLE_COLORS: Record<string, string> = {
@@ -77,7 +99,8 @@ const ROLE_ORDER: Record<string, number> = {
 const STATUS_ORDER: Record<string, number> = {
   pending: 0,
   approved: 1,
-  rejected: 2,
+  suspended: 2,
+  rejected: 3,
 };
 
 function getInitials(name: string): string {
@@ -104,6 +127,11 @@ export function MembersManagement({ profile }: MembersManagementProps) {
   const [sortField, setSortField] = useState<SortField>("created_at");
   const [sortOrder, setSortOrder] = useState<SortOrder>("desc");
 
+  // Delete confirmation dialog
+  const [deleteTarget, setDeleteTarget] = useState<Profile | null>(null);
+
+  const isBureau = profile.role === "bureau";
+
   const fetchMembers = useCallback(async () => {
     setLoading(true);
 
@@ -129,7 +157,6 @@ export function MembersManagement({ profile }: MembersManagementProps) {
   const filteredMembers = useMemo(() => {
     let result = [...members];
 
-    // Search filter
     if (search.trim()) {
       const searchLower = search.toLowerCase();
       result = result.filter(
@@ -139,17 +166,14 @@ export function MembersManagement({ profile }: MembersManagementProps) {
       );
     }
 
-    // Role filter
     if (roleFilter !== "tous") {
       result = result.filter((m) => m.role === roleFilter);
     }
 
-    // Status filter
     if (statusFilter !== "tous") {
       result = result.filter((m) => m.status === statusFilter);
     }
 
-    // Sort
     result.sort((a, b) => {
       const dir = sortOrder === "asc" ? 1 : -1;
 
@@ -191,10 +215,9 @@ export function MembersManagement({ profile }: MembersManagementProps) {
     }
   }
 
-  // Admin actions via API route
   async function handleAction(
     memberId: string,
-    action: "approve" | "reject" | "change_role",
+    action: "approve" | "reject" | "suspend" | "delete" | "change_role",
     value?: string
   ) {
     setActionLoading(memberId);
@@ -218,6 +241,7 @@ export function MembersManagement({ profile }: MembersManagementProps) {
       toast.error("Erreur de connexion au serveur.");
     } finally {
       setActionLoading(null);
+      setDeleteTarget(null);
     }
   }
 
@@ -228,6 +252,7 @@ export function MembersManagement({ profile }: MembersManagementProps) {
       pending: 0,
       approved: 0,
       rejected: 0,
+      suspended: 0,
     };
 
     for (const m of members) {
@@ -263,7 +288,7 @@ export function MembersManagement({ profile }: MembersManagementProps) {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <Card className="gap-0 py-0">
           <CardHeader className="p-4 pb-2">
             <CardTitle className="text-xs font-medium text-muted-foreground">
@@ -278,45 +303,47 @@ export function MembersManagement({ profile }: MembersManagementProps) {
           </CardContent>
         </Card>
 
-        {Object.entries(ROLES).map(([key, val]) => (
-          <Card key={key} className="gap-0 py-0">
-            <CardHeader className="p-4 pb-2">
-              <CardTitle className="text-xs font-medium text-muted-foreground">
-                {val.label}
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-4 pt-0">
-              <div className="flex items-center gap-2">
-                <p className="text-2xl font-bold">
-                  {stats.byRole[key] ?? 0}
-                </p>
-                <Badge className={cn("text-xs", ROLE_COLORS[key])}>
-                  {val.label}
-                </Badge>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+        <Card className="gap-0 py-0">
+          <CardHeader className="p-4 pb-2">
+            <CardTitle className="text-xs font-medium text-muted-foreground">
+              Actifs
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-4 pt-0">
+            <div className="flex items-center gap-2">
+              <UserCheck className="size-4 text-green-500" />
+              <p className="text-2xl font-bold">{stats.byStatus.approved}</p>
+            </div>
+          </CardContent>
+        </Card>
 
-        {(["pending", "approved", "rejected"] as const).map((status) => (
-          <Card key={status} className="gap-0 py-0">
-            <CardHeader className="p-4 pb-2">
-              <CardTitle className="text-xs font-medium text-muted-foreground">
-                {STATUS_LABELS[status]}
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-4 pt-0">
-              <div className="flex items-center gap-2">
-                <p className="text-2xl font-bold">
-                  {stats.byStatus[status] ?? 0}
-                </p>
-                <Badge className={cn("text-xs", STATUS_COLORS[status])}>
-                  {STATUS_LABELS[status]}
-                </Badge>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+        <Card className="gap-0 py-0">
+          <CardHeader className="p-4 pb-2">
+            <CardTitle className="text-xs font-medium text-muted-foreground">
+              En attente
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-4 pt-0">
+            <div className="flex items-center gap-2">
+              <Loader2 className="size-4 text-amber-500" />
+              <p className="text-2xl font-bold">{stats.byStatus.pending}</p>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="gap-0 py-0">
+          <CardHeader className="p-4 pb-2">
+            <CardTitle className="text-xs font-medium text-muted-foreground">
+              Suspendus
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-4 pt-0">
+            <div className="flex items-center gap-2">
+              <Ban className="size-4 text-orange-500" />
+              <p className="text-2xl font-bold">{stats.byStatus.suspended}</p>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Filters */}
@@ -332,7 +359,7 @@ export function MembersManagement({ profile }: MembersManagementProps) {
         </div>
 
         <Select value={roleFilter} onValueChange={setRoleFilter}>
-          <SelectTrigger className="w-[180px]">
+          <SelectTrigger className="w-[160px]">
             <SelectValue placeholder="Rôle" />
           </SelectTrigger>
           <SelectContent>
@@ -346,13 +373,14 @@ export function MembersManagement({ profile }: MembersManagementProps) {
         </Select>
 
         <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-[180px]">
+          <SelectTrigger className="w-[160px]">
             <SelectValue placeholder="Statut" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="tous">Tous les statuts</SelectItem>
             <SelectItem value="pending">En attente</SelectItem>
-            <SelectItem value="approved">Approuvé</SelectItem>
+            <SelectItem value="approved">Actif</SelectItem>
+            <SelectItem value="suspended">Suspendu</SelectItem>
             <SelectItem value="rejected">Rejeté</SelectItem>
           </SelectContent>
         </Select>
@@ -421,7 +449,6 @@ export function MembersManagement({ profile }: MembersManagementProps) {
                         <ArrowUpDown className="h-3 w-3" />
                       </Button>
                     </TableHead>
-                    <TableHead>Bateau</TableHead>
                     <TableHead>
                       <Button
                         variant="ghost"
@@ -429,24 +456,25 @@ export function MembersManagement({ profile }: MembersManagementProps) {
                         onClick={() => toggleSort("created_at")}
                         className="font-medium"
                       >
-                        Date inscription
+                        Inscription
                         <ArrowUpDown className="h-3 w-3" />
                       </Button>
                     </TableHead>
-                    <TableHead>Actions</TableHead>
+                    <TableHead className="w-[100px]">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {filteredMembers.map((member) => {
-                    const isPending = member.status === "pending";
                     const isLoading = actionLoading === member.id;
-                    const isBureau = profile.role === "bureau";
+                    const isSelf = member.id === profile.id;
 
                     return (
                       <TableRow
                         key={member.id}
                         className={cn(
-                          isPending && "bg-amber-50/50"
+                          member.status === "pending" && "bg-amber-50/50",
+                          member.status === "suspended" && "bg-orange-50/30",
+                          member.status === "rejected" && "bg-red-50/30"
                         )}
                       >
                         {/* Avatar */}
@@ -464,9 +492,22 @@ export function MembersManagement({ profile }: MembersManagementProps) {
 
                         {/* Nom */}
                         <TableCell>
-                          <p className="font-medium text-sm">
-                            {member.full_name}
-                          </p>
+                          <div>
+                            <p className="font-medium text-sm">
+                              {member.full_name}
+                              {isSelf && (
+                                <span className="text-xs text-muted-foreground ml-1">
+                                  (vous)
+                                </span>
+                              )}
+                            </p>
+                            {member.boat_name && (
+                              <p className="text-xs text-muted-foreground">
+                                {member.boat_name}
+                                {member.boat_type && ` (${member.boat_type})`}
+                              </p>
+                            )}
+                          </div>
                         </TableCell>
 
                         {/* Email */}
@@ -476,7 +517,7 @@ export function MembersManagement({ profile }: MembersManagementProps) {
 
                         {/* Rôle */}
                         <TableCell>
-                          {isBureau && member.id !== profile.id ? (
+                          {isBureau && !isSelf ? (
                             <Select
                               value={member.role}
                               onValueChange={(val) =>
@@ -484,7 +525,7 @@ export function MembersManagement({ profile }: MembersManagementProps) {
                               }
                               disabled={isLoading}
                             >
-                              <SelectTrigger className="h-7 w-[140px] text-xs">
+                              <SelectTrigger className="h-7 w-[120px] text-xs">
                                 <Badge
                                   className={cn(
                                     "text-xs",
@@ -527,34 +568,18 @@ export function MembersManagement({ profile }: MembersManagementProps) {
                           </Badge>
                         </TableCell>
 
-                        {/* Bateau */}
-                        <TableCell className="text-sm text-muted-foreground">
-                          {member.boat_name ? (
-                            <span>
-                              {member.boat_name}
-                              {member.boat_type && (
-                                <span className="text-xs text-muted-foreground">
-                                  {" "}
-                                  ({member.boat_type})
-                                </span>
-                              )}
-                            </span>
-                          ) : (
-                            <span className="text-xs text-muted-foreground italic">
-                              Non renseigné
-                            </span>
-                          )}
-                        </TableCell>
-
                         {/* Date inscription */}
                         <TableCell className="text-xs text-muted-foreground">
-                          <span title={format(new Date(member.created_at), "PPP", { locale: fr })}>
+                          <span
+                            title={format(
+                              new Date(member.created_at),
+                              "PPP",
+                              { locale: fr }
+                            )}
+                          >
                             {formatDistanceToNow(
                               new Date(member.created_at),
-                              {
-                                addSuffix: true,
-                                locale: fr,
-                              }
+                              { addSuffix: true, locale: fr }
                             )}
                           </span>
                         </TableCell>
@@ -563,7 +588,12 @@ export function MembersManagement({ profile }: MembersManagementProps) {
                         <TableCell>
                           {isLoading ? (
                             <Loader2 className="size-4 animate-spin text-muted-foreground" />
-                          ) : isPending ? (
+                          ) : isSelf ? (
+                            <span className="text-xs text-muted-foreground">
+                              —
+                            </span>
+                          ) : member.status === "pending" ? (
+                            /* Pending: Approve / Reject */
                             <div className="flex items-center gap-1">
                               <Button
                                 variant="outline"
@@ -574,7 +604,7 @@ export function MembersManagement({ profile }: MembersManagementProps) {
                                 }
                               >
                                 <Check className="size-3.5" />
-                                Approuver
+                                Activer
                               </Button>
                               <Button
                                 variant="outline"
@@ -585,22 +615,90 @@ export function MembersManagement({ profile }: MembersManagementProps) {
                                 }
                               >
                                 <X className="size-3.5" />
-                                Rejeter
                               </Button>
                             </div>
-                          ) : member.status === "rejected" ? (
-                            <Button
-                              variant="outline"
-                              size="xs"
-                              className="text-green-600 hover:text-green-700 hover:bg-green-50"
-                              onClick={() =>
-                                handleAction(member.id, "approve")
-                              }
-                            >
-                              <Check className="size-3.5" />
-                              Réintégrer
-                            </Button>
-                          ) : null}
+                          ) : (
+                            /* All other statuses: dropdown menu */
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="xs"
+                                  className="h-8 w-8 p-0"
+                                >
+                                  <MoreHorizontal className="size-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end" className="w-48">
+                                {/* Activate - show if not already approved */}
+                                {member.status !== "approved" && (
+                                  <DropdownMenuItem
+                                    onClick={() =>
+                                      handleAction(member.id, "approve")
+                                    }
+                                    className="text-green-600 focus:text-green-700 focus:bg-green-50"
+                                  >
+                                    <UserCheck className="size-4" />
+                                    Activer
+                                  </DropdownMenuItem>
+                                )}
+
+                                {/* Suspend - show if approved */}
+                                {member.status === "approved" &&
+                                  isBureau && (
+                                    <DropdownMenuItem
+                                      onClick={() =>
+                                        handleAction(member.id, "suspend")
+                                      }
+                                      className="text-orange-600 focus:text-orange-700 focus:bg-orange-50"
+                                    >
+                                      <Ban className="size-4" />
+                                      Suspendre
+                                    </DropdownMenuItem>
+                                  )}
+
+                                {/* Reinstate from suspended */}
+                                {member.status === "suspended" && (
+                                  <DropdownMenuItem
+                                    onClick={() =>
+                                      handleAction(member.id, "approve")
+                                    }
+                                    className="text-green-600 focus:text-green-700 focus:bg-green-50"
+                                  >
+                                    <RotateCcw className="size-4" />
+                                    Réactiver
+                                  </DropdownMenuItem>
+                                )}
+
+                                {/* Reinstate from rejected */}
+                                {member.status === "rejected" && (
+                                  <DropdownMenuItem
+                                    onClick={() =>
+                                      handleAction(member.id, "approve")
+                                    }
+                                    className="text-green-600 focus:text-green-700 focus:bg-green-50"
+                                  >
+                                    <RotateCcw className="size-4" />
+                                    Réintégrer
+                                  </DropdownMenuItem>
+                                )}
+
+                                {/* Delete - Bureau only */}
+                                {isBureau && (
+                                  <>
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuItem
+                                      onClick={() => setDeleteTarget(member)}
+                                      className="text-red-600 focus:text-red-700 focus:bg-red-50"
+                                    >
+                                      <Trash2 className="size-4" />
+                                      Supprimer
+                                    </DropdownMenuItem>
+                                  </>
+                                )}
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          )}
                         </TableCell>
                       </TableRow>
                     );
@@ -619,6 +717,36 @@ export function MembersManagement({ profile }: MembersManagementProps) {
         {filteredMembers.length !== members.length &&
           ` sur ${members.length} au total`}
       </p>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog
+        open={!!deleteTarget}
+        onOpenChange={(open) => !open && setDeleteTarget(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Supprimer ce membre ?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Vous allez supprimer definitivement le compte de{" "}
+              <strong>{deleteTarget?.full_name}</strong> ({deleteTarget?.email}
+              ). Cette action est irreversible. Toutes les donnees associees
+              (posts, commentaires, messages) seront supprimees.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annuler</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-red-600 hover:bg-red-700 text-white"
+              onClick={() =>
+                deleteTarget && handleAction(deleteTarget.id, "delete")
+              }
+            >
+              <Trash2 className="size-4" />
+              Supprimer definitivement
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

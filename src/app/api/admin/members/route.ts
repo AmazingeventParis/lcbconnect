@@ -40,6 +40,14 @@ export async function PATCH(request: NextRequest) {
       );
     }
 
+    // Prevent self-modification for destructive actions
+    if (memberId === user.id && ["suspend", "delete", "reject"].includes(action)) {
+      return NextResponse.json(
+        { error: "Vous ne pouvez pas effectuer cette action sur votre propre compte." },
+        { status: 400 }
+      );
+    }
+
     // Use service role client for admin operations
     const serviceClient = await createServiceClient();
 
@@ -57,7 +65,7 @@ export async function PATCH(request: NextRequest) {
           );
         }
 
-        return NextResponse.json({ success: true, message: "Membre approuvé" });
+        return NextResponse.json({ success: true, message: "Membre activé" });
       }
 
       case "reject": {
@@ -74,6 +82,52 @@ export async function PATCH(request: NextRequest) {
         }
 
         return NextResponse.json({ success: true, message: "Membre rejeté" });
+      }
+
+      case "suspend": {
+        // Only Bureau can suspend
+        if (callerProfile.role !== "bureau") {
+          return NextResponse.json(
+            { error: "Seul le Bureau peut suspendre un membre." },
+            { status: 403 }
+          );
+        }
+
+        const { error } = await (serviceClient as any)
+          .from("lcb_profiles")
+          .update({ status: "suspended", updated_at: new Date().toISOString() })
+          .eq("id", memberId);
+
+        if (error) {
+          return NextResponse.json(
+            { error: "Erreur lors de la suspension: " + error.message },
+            { status: 500 }
+          );
+        }
+
+        return NextResponse.json({ success: true, message: "Membre suspendu" });
+      }
+
+      case "delete": {
+        // Only Bureau can delete
+        if (callerProfile.role !== "bureau") {
+          return NextResponse.json(
+            { error: "Seul le Bureau peut supprimer un membre." },
+            { status: 403 }
+          );
+        }
+
+        // Delete from auth.users (cascades to lcb_profiles)
+        const { error } = await serviceClient.auth.admin.deleteUser(memberId);
+
+        if (error) {
+          return NextResponse.json(
+            { error: "Erreur lors de la suppression: " + error.message },
+            { status: 500 }
+          );
+        }
+
+        return NextResponse.json({ success: true, message: "Membre supprimé définitivement" });
       }
 
       case "change_role": {

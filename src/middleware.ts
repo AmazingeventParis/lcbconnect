@@ -55,12 +55,15 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  // Rejected users go to login
-  if (profile.status === "rejected") {
+  // Rejected or suspended users go to login
+  if (profile.status === "rejected" || profile.status === "suspended") {
     await supabase.auth.signOut();
     const url = request.nextUrl.clone();
     url.pathname = "/login";
-    url.searchParams.set("error", "rejected");
+    url.searchParams.set(
+      "error",
+      profile.status === "suspended" ? "suspended" : "rejected"
+    );
     return NextResponse.redirect(url);
   }
 

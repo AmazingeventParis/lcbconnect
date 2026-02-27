@@ -15,7 +15,7 @@ export type Database = {
           email: string;
           full_name: string;
           role: "membre" | "ca" | "bureau";
-          status: "pending" | "approved" | "rejected";
+          status: "pending" | "approved" | "rejected" | "suspended";
           boat_name: string | null;
           boat_type: string | null;
           mooring_port: string | null;
@@ -30,7 +30,7 @@ export type Database = {
           email: string;
           full_name: string;
           role?: "membre" | "ca" | "bureau";
-          status?: "pending" | "approved" | "rejected";
+          status?: "pending" | "approved" | "rejected" | "suspended";
           boat_name?: string | null;
           boat_type?: string | null;
           mooring_port?: string | null;
@@ -45,7 +45,7 @@ export type Database = {
           email?: string;
           full_name?: string;
           role?: "membre" | "ca" | "bureau";
-          status?: "pending" | "approved" | "rejected";
+          status?: "pending" | "approved" | "rejected" | "suspended";
           boat_name?: string | null;
           boat_type?: string | null;
           mooring_port?: string | null;
