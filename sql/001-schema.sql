@@ -15,7 +15,7 @@ CREATE TABLE lcb_profiles (
     email       text,
     full_name   text,
     role        text NOT NULL DEFAULT 'membre' CHECK (role IN ('membre', 'ca', 'bureau')),
-    status      text NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'rejected')),
+    status      text NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'rejected', 'suspended')),
     boat_name   text,
     boat_type   text,
     mooring_port text,
