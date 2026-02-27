@@ -4,7 +4,6 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   Newspaper,
-  Wrench,
   MessageSquare,
   Bell,
   User,
@@ -15,7 +14,6 @@ import type { Profile } from "@/lib/supabase/types";
 
 const MOBILE_NAV_ITEMS = [
   { href: "/feed", label: "Fil", icon: Newspaper },
-  { href: "/services", label: "Services", icon: Wrench },
   { href: "/messages", label: "Messages", icon: MessageSquare },
   { href: "/notifications", label: "Notifs", icon: Bell },
   { href: "/profile", label: "Profil", icon: User },

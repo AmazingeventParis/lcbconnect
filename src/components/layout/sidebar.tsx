@@ -5,7 +5,6 @@ import { usePathname } from "next/navigation";
 import {
   Anchor,
   Newspaper,
-  Wrench,
   AlertTriangle,
   Ship,
   FileText,
@@ -31,7 +30,6 @@ const ROLE_LABELS: Record<Role, string> = {
 
 const NAV_ITEMS = [
   { href: "/feed", label: "Fil d'actualites", icon: Newspaper },
-  { href: "/services", label: "Services", icon: Wrench },
   { href: "/complaints", label: "Plaintes", icon: AlertTriangle },
   { href: "/avis-batellerie", label: "Avis Batellerie", icon: Ship },
   { href: "/documents", label: "Documents", icon: FileText },

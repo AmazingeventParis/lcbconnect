@@ -24,9 +24,7 @@ const FILTER_TABS: { value: PostType | "all"; label: string }[] = [
   { value: "all", label: "Tout" },
   { value: "standard", label: "Publications" },
   { value: "service", label: "Services" },
-  { value: "plainte", label: "Plaintes" },
   { value: "officiel_bureau", label: "Officiel" },
-  { value: "avis_batellerie", label: "Avis Batellerie" },
 ];
 
 export function FeedClient({ profile, initialPosts }: FeedClientProps) {
