@@ -6,7 +6,6 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { CheckCircle2, Loader2 } from "lucide-react";
 
-import { createClient } from "@/lib/supabase/client";
 import { signupSchema, type SignupValues } from "@/lib/validators";
 import { Button } from "@/components/ui/button";
 import {
@@ -46,25 +45,31 @@ export default function SignupPage() {
     setIsLoading(true);
     setError(null);
 
-    const supabase = createClient();
-    const { error: authError } = await supabase.auth.signUp({
-      email: values.email,
-      password: values.password,
-      options: {
-        data: {
+    try {
+      const res = await fetch("/api/auth/signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: values.email,
+          password: values.password,
           full_name: values.full_name,
           boat_name: values.boat_name || undefined,
-        },
-      },
-    });
+        }),
+      });
 
-    if (authError) {
-      setError(authError.message);
-      setIsLoading(false);
-      return;
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError(data.error ?? "Une erreur est survenue.");
+        setIsLoading(false);
+        return;
+      }
+
+      setIsSuccess(true);
+    } catch {
+      setError("Erreur de connexion au serveur.");
     }
 
-    setIsSuccess(true);
     setIsLoading(false);
   }
 
