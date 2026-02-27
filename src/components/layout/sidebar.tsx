@@ -10,6 +10,7 @@ import {
   Calendar,
   BookOpen,
   MessageSquare,
+  Map,
   Settings,
   Bell,
   User,
@@ -34,6 +35,7 @@ const NAV_ITEMS = [
   { href: "/events", label: "Evenements", icon: Calendar },
   { href: "/directory", label: "Annuaire", icon: BookOpen },
   { href: "/messages", label: "Messages", icon: MessageSquare },
+  { href: "/carte", label: "Carte", icon: Map },
 ];
 
 const ADMIN_ITEMS = [

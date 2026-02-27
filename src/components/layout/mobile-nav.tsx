@@ -12,6 +12,7 @@ import {
   Ship,
   FileText,
   BookOpen,
+  Map,
   User,
   Settings,
   X,
@@ -32,6 +33,7 @@ const MORE_NAV_ITEMS = [
   { href: "/avis-batellerie", label: "Avis Batellerie", icon: Ship },
   { href: "/documents", label: "Documents", icon: FileText },
   { href: "/directory", label: "Annuaire", icon: BookOpen },
+  { href: "/carte", label: "Carte", icon: Map },
   { href: "/profile", label: "Mon profil", icon: User },
 ];
 
