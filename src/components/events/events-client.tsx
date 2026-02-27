@@ -171,7 +171,7 @@ export function EventsClient({ profile }: EventsClientProps) {
       {/* Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-6">
         <div>
-          <h1 className="text-2xl font-bold">Calendrier 2025</h1>
+          <h1 className="text-2xl font-bold">Calendrier 2026</h1>
           <p className="text-muted-foreground text-sm mt-1">
             {events.length} evenements programmes
           </p>
@@ -263,18 +263,18 @@ export function EventsClient({ profile }: EventsClientProps) {
           {/* Quick month jump */}
           <div className="flex flex-wrap gap-1.5 justify-center">
             {Array.from({ length: 12 }, (_, i) => {
-              const month = new Date(2025, i, 1);
+              const month = new Date(2026, i, 1);
               const hasEvents = events.some((e) => {
                 const start = new Date(e.start_date);
                 const end = e.end_date ? new Date(e.end_date) : start;
                 return (
-                  (start.getMonth() === i && start.getFullYear() === 2025) ||
-                  (end.getMonth() === i && end.getFullYear() === 2025)
+                  (start.getMonth() === i && start.getFullYear() === 2026) ||
+                  (end.getMonth() === i && end.getFullYear() === 2026)
                 );
               });
               const isCurrent =
                 calendarMonth.getMonth() === i &&
-                calendarMonth.getFullYear() === 2025;
+                calendarMonth.getFullYear() === 2026;
               return (
                 <button
                   key={i}
