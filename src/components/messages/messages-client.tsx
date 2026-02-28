@@ -9,7 +9,7 @@ import { ConversationList } from "./conversation-list";
 import { ChatView } from "./chat-view";
 import { NewConversationDialog } from "./new-conversation-dialog";
 import { ChannelList } from "./channel-list";
-import { MessageSquarePlus, MessageCircle, Hash } from "lucide-react";
+import { MessageSquarePlus, MessageCircle, UserCog } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { Profile } from "@/lib/supabase/types";
 
@@ -124,7 +124,7 @@ export function MessagesClient({ profile }: MessagesClientProps) {
               onClick={() => setShowChannels(true)}
               title="Groupes"
             >
-              <Hash className="size-5" />
+              <UserCog className="size-5" />
             </Button>
             <Button
               variant="ghost"

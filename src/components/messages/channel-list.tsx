@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { toast } from "sonner";
 import {
-  Hash,
+  UsersRound,
   Shield,
   LogIn,
   LogOut,
@@ -162,7 +162,7 @@ export function ChannelList({
                       {isCA ? (
                         <Shield className="size-4" />
                       ) : (
-                        <Hash className="size-4" />
+                        <UsersRound className="size-4" />
                       )}
                     </div>
 
