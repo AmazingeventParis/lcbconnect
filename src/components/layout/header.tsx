@@ -2,7 +2,8 @@
 
 import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
-import { LogOut, Settings, User } from "lucide-react";
+import { Bell, LogOut, Settings, User } from "lucide-react";
+import { useNotifications } from "@/lib/hooks/use-notifications";
 import { hasMinRole } from "@/lib/constants";
 import { createClient } from "@/lib/supabase/client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -64,6 +65,7 @@ export function Header({ profile }: HeaderProps) {
 
   const pageTitle = getPageTitle(pathname);
   const showAdmin = hasMinRole(profile.role, "ca");
+  const { unreadCount } = useNotifications(profile.id);
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
@@ -80,8 +82,20 @@ export function Header({ profile }: HeaderProps) {
         </h1>
       </div>
 
-      {/* Right: user dropdown */}
+      {/* Right: notifications + user dropdown */}
       <div className="flex items-center gap-2">
+        <Link
+          href="/notifications"
+          className="relative rounded-lg p-2 hover:bg-accent transition-colors"
+          title="Notifications"
+        >
+          <Bell className="size-5 text-muted-foreground" />
+          {unreadCount > 0 && (
+            <span className="absolute -top-0.5 -right-0.5 flex items-center justify-center min-w-[18px] h-[18px] rounded-full bg-[#D4A853] text-[10px] font-bold text-white px-1">
+              {unreadCount > 99 ? "99+" : unreadCount}
+            </span>
+          )}
+        </Link>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <button className="flex items-center gap-2 rounded-lg p-1.5 hover:bg-accent transition-colors focus:outline-none">
