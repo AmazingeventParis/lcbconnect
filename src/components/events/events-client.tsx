@@ -316,7 +316,7 @@ export function EventsClient({ profile }: EventsClientProps) {
               {Array.from({ length: startDayOfWeek }).map((_, i) => (
                 <div
                   key={`empty-${i}`}
-                  className="min-h-[60px] md:min-h-[90px] p-1 border-b border-r bg-muted/20"
+                  className="min-h-[44px] md:min-h-[64px] p-1 border-b border-r bg-muted/20"
                 />
               ))}
 
@@ -336,7 +336,7 @@ export function EventsClient({ profile }: EventsClientProps) {
                         selectedDay && isSameDay(day, selectedDay) ? null : day
                       )
                     }
-                    className={`min-h-[60px] md:min-h-[90px] p-1 md:p-1.5 border-b border-r text-left transition-colors relative ${
+                    className={`min-h-[44px] md:min-h-[64px] p-1 md:p-1.5 border-b border-r text-left transition-colors relative ${
                       isSelected
                         ? "bg-primary/5 ring-2 ring-primary ring-inset"
                         : isCurrentDay
@@ -348,7 +348,7 @@ export function EventsClient({ profile }: EventsClientProps) {
                   >
                     {/* Day number */}
                     <span
-                      className={`text-xs md:text-sm font-medium inline-flex items-center justify-center w-5 h-5 md:w-6 md:h-6 rounded-full ${
+                      className={`text-[10px] md:text-xs font-medium inline-flex items-center justify-center w-5 h-5 rounded-full ${
                         isCurrentDay
                           ? "bg-primary text-primary-foreground font-bold"
                           : isSelected
@@ -376,7 +376,7 @@ export function EventsClient({ profile }: EventsClientProps) {
 
                       {/* Desktop: event labels */}
                       <div className="hidden md:block space-y-0.5">
-                        {dayEvents.slice(0, 2).map((evt) => {
+                        {dayEvents.slice(0, 1).map((evt) => {
                           const color = getEventColor(getEventColorIndex(evt));
                           const multi = isMultiDay(evt);
                           const isStart = isSameDay(
@@ -393,9 +393,9 @@ export function EventsClient({ profile }: EventsClientProps) {
                             </div>
                           );
                         })}
-                        {dayEvents.length > 2 && (
+                        {dayEvents.length > 1 && (
                           <span className="text-[10px] text-muted-foreground pl-1">
-                            +{dayEvents.length - 2}
+                            +{dayEvents.length - 1}
                           </span>
                         )}
                       </div>
