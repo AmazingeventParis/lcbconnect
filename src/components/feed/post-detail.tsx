@@ -45,11 +45,11 @@ const POST_TYPE_ICONS: Record<string, React.ElementType> = {
 };
 
 const POST_TYPE_COLORS: Record<string, string> = {
-  standard: "bg-teal-100 text-teal-700",
+  standard: "bg-[#1E3A5F]/10 text-[#1E3A5F]",
   service: "bg-amber-100 text-amber-700",
   plainte: "bg-red-100 text-red-700",
   officiel_bureau: "bg-purple-100 text-purple-700",
-  avis_batellerie: "bg-teal-100 text-teal-700",
+  avis_batellerie: "bg-[#1E3A5F]/10 text-[#1E3A5F]",
 };
 
 const ROLE_COLORS: Record<string, string> = {

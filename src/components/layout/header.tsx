@@ -89,13 +89,13 @@ export function Header({ profile }: HeaderProps) {
           className={cn(
             "relative flex items-center justify-center size-9 rounded-lg transition-colors",
             pathname.startsWith("/notifications")
-              ? "bg-teal-50 text-teal-600"
+              ? "bg-[#1E3A5F]/10 text-[#1E3A5F]"
               : "text-muted-foreground hover:bg-accent hover:text-foreground"
           )}
         >
           <Bell className="size-5" />
           {unreadCount > 0 && (
-            <span className="absolute -top-0.5 -right-0.5 flex items-center justify-center size-4 rounded-full bg-[#F4845F] text-[10px] font-bold text-white">
+            <span className="absolute -top-0.5 -right-0.5 flex items-center justify-center size-4 rounded-full bg-[#D4A853] text-[10px] font-bold text-white">
               {unreadCount > 9 ? "9+" : unreadCount}
             </span>
           )}
@@ -109,7 +109,7 @@ export function Header({ profile }: HeaderProps) {
                   src={profile.avatar_url ?? undefined}
                   alt={profile.full_name}
                 />
-                <AvatarFallback className="bg-teal-100 text-teal-700 text-[10px]">
+                <AvatarFallback className="bg-[#1E3A5F]/10 text-[#1E3A5F] text-[10px]">
                   {getInitials(profile.full_name)}
                 </AvatarFallback>
               </Avatar>

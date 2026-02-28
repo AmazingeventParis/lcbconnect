@@ -100,14 +100,14 @@ export function MobileNav({ profile: _profile }: MobileNavProps) {
                     className={cn(
                       "flex items-center gap-3 px-4 py-2.5 text-sm transition-colors",
                       active
-                        ? "bg-teal-50 text-teal-700 font-medium"
+                        ? "bg-[#1E3A5F]/10 text-[#1E3A5F] font-medium"
                         : "text-foreground hover:bg-accent"
                     )}
                   >
                     <Icon
                       className={cn(
                         "size-5",
-                        active ? "text-teal-600" : "text-muted-foreground"
+                        active ? "text-[#1E3A5F]" : "text-muted-foreground"
                       )}
                     />
                     {item.label}
@@ -128,14 +128,14 @@ export function MobileNav({ profile: _profile }: MobileNavProps) {
                         className={cn(
                           "flex items-center gap-3 px-4 py-2.5 text-sm transition-colors",
                           active
-                            ? "bg-teal-50 text-teal-700 font-medium"
+                            ? "bg-[#1E3A5F]/10 text-[#1E3A5F] font-medium"
                             : "text-foreground hover:bg-accent"
                         )}
                       >
                         <Icon
                           className={cn(
                             "size-5",
-                            active ? "text-teal-600" : "text-muted-foreground"
+                            active ? "text-[#1E3A5F]" : "text-muted-foreground"
                           )}
                         />
                         {item.label}
@@ -162,7 +162,7 @@ export function MobileNav({ profile: _profile }: MobileNavProps) {
               className={cn(
                 "flex flex-1 flex-col items-center gap-1 py-2 text-[10px] font-medium transition-colors",
                 active
-                  ? "text-teal-600"
+                  ? "text-[#1E3A5F]"
                   : "text-muted-foreground hover:text-foreground"
               )}
             >
@@ -170,11 +170,11 @@ export function MobileNav({ profile: _profile }: MobileNavProps) {
                 <Icon
                   className={cn(
                     "size-5",
-                    active ? "text-teal-600" : "text-muted-foreground"
+                    active ? "text-[#1E3A5F]" : "text-muted-foreground"
                   )}
                 />
                 {item.href === "/notifications" && unreadCount > 0 && (
-                  <span className="absolute -top-1 -right-1.5 flex items-center justify-center size-3.5 rounded-full bg-[#F4845F] text-[8px] font-bold text-white">
+                  <span className="absolute -top-1 -right-1.5 flex items-center justify-center size-3.5 rounded-full bg-[#D4A853] text-[8px] font-bold text-white">
                     {unreadCount > 9 ? "9+" : unreadCount}
                   </span>
                 )}
@@ -190,14 +190,14 @@ export function MobileNav({ profile: _profile }: MobileNavProps) {
           className={cn(
             "flex flex-1 flex-col items-center gap-1 py-2 text-[10px] font-medium transition-colors",
             moreOpen || isMoreActive
-              ? "text-teal-600"
+              ? "text-[#1E3A5F]"
               : "text-muted-foreground hover:text-foreground"
           )}
         >
           <Menu
             className={cn(
               "size-5",
-              moreOpen || isMoreActive ? "text-teal-600" : "text-muted-foreground"
+              moreOpen || isMoreActive ? "text-[#1E3A5F]" : "text-muted-foreground"
             )}
           />
           Plus

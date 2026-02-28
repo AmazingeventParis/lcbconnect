@@ -300,7 +300,7 @@ export function NewConversationDialog({
                     "hover:bg-gray-100",
                     isGroupMode &&
                       selectedUsers.includes(member.id) &&
-                      "bg-teal-50 hover:bg-teal-100"
+                      "bg-[#1E3A5F]/5 hover:bg-[#1E3A5F]/10"
                   )}
                   onClick={() => {
                     if (isGroupMode) {

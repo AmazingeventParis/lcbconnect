@@ -131,7 +131,7 @@ export default function ForgotPasswordPage() {
         </Form>
       </CardContent>
       <CardFooter className="justify-center">
-        <Link href="/login" className="text-sm text-teal-600 hover:underline">
+        <Link href="/login" className="text-sm text-[#1E3A5F] hover:underline">
           Retour à la connexion
         </Link>
       </CardFooter>

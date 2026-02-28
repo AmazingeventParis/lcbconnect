@@ -116,7 +116,7 @@ function LoginForm() {
                     <FormLabel>Mot de passe</FormLabel>
                     <Link
                       href="/forgot-password"
-                      className="text-sm text-teal-600 hover:underline"
+                      className="text-sm text-[#1E3A5F] hover:underline"
                     >
                       Mot de passe oublié ?
                     </Link>
@@ -143,7 +143,7 @@ function LoginForm() {
       <CardFooter className="justify-center">
         <p className="text-sm text-muted-foreground">
           Pas encore de compte ?{" "}
-          <Link href="/signup" className="text-teal-600 hover:underline">
+          <Link href="/signup" className="text-[#1E3A5F] hover:underline">
             Créer un compte
           </Link>
         </p>

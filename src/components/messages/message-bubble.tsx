@@ -103,7 +103,7 @@ export function MessageBubble({
                 className={cn(
                   "rounded-2xl px-3 py-2 text-sm break-words whitespace-pre-wrap animate-slide-in-message",
                   isOwn
-                    ? "bg-teal-500 text-white rounded-br-md"
+                    ? "bg-[#1E3A5F] text-white rounded-br-md"
                     : "bg-gray-100 text-gray-900 rounded-bl-md"
                 )}
               >

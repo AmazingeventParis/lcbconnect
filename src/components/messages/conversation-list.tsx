@@ -351,7 +351,7 @@ export function ConversationList({
                   className={cn(
                     "w-full flex items-center gap-3 px-3 py-3 rounded-lg transition-colors text-left",
                     isSelected
-                      ? "bg-teal-50"
+                      ? "bg-[#1E3A5F]/5"
                       : "hover:bg-gray-50",
                     hasUnread && "font-medium"
                   )}
@@ -359,7 +359,7 @@ export function ConversationList({
                 >
                   {/* Avatar */}
                   {conv.is_group ? (
-                    <div className="flex items-center justify-center size-12 rounded-full bg-teal-100 text-teal-600 shrink-0">
+                    <div className="flex items-center justify-center size-12 rounded-full bg-[#1E3A5F]/10 text-[#1E3A5F] shrink-0">
                       {getGroupIcon(conv.group_type)}
                     </div>
                   ) : (
@@ -405,7 +405,7 @@ export function ConversationList({
                         {preview}
                       </p>
                       {hasUnread && (
-                        <span className="size-2.5 rounded-full bg-teal-500 shrink-0" />
+                        <span className="size-2.5 rounded-full bg-[#D4A853] shrink-0" />
                       )}
                     </div>
                     {conv.is_group && (

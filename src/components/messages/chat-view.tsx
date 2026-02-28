@@ -301,7 +301,7 @@ export function ChatView({
         </Button>
 
         {conversation?.is_group ? (
-          <div className="flex items-center justify-center size-10 rounded-full bg-teal-100 text-teal-600 shrink-0">
+          <div className="flex items-center justify-center size-10 rounded-full bg-[#1E3A5F]/10 text-[#1E3A5F] shrink-0">
             {getGroupIcon(conversation.group_type)}
           </div>
         ) : (
@@ -419,7 +419,7 @@ export function ChatView({
               placeholder="Ecrivez un message..."
               className={cn(
                 "w-full resize-none rounded-2xl border bg-gray-50 px-4 py-2.5 text-sm",
-                "focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent",
+                "focus:outline-none focus:ring-2 focus:ring-[#1E3A5F] focus:border-transparent",
                 "placeholder:text-muted-foreground",
                 "min-h-[40px] max-h-[120px]"
               )}

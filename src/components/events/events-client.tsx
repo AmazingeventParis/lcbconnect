@@ -340,7 +340,7 @@ export function EventsClient({ profile }: EventsClientProps) {
                       isSelected
                         ? "bg-primary/5 ring-2 ring-primary ring-inset"
                         : isCurrentDay
-                        ? "bg-teal-50"
+                        ? "bg-[#D4A853]/10"
                         : isWeekend
                         ? "bg-slate-50/50"
                         : "bg-white hover:bg-slate-50"

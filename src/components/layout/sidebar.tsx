@@ -68,13 +68,13 @@ export function Sidebar({ profile }: SidebarProps) {
   const showAdmin = hasMinRole(profile.role, "ca");
 
   return (
-    <aside className="hidden md:flex md:flex-col md:w-[280px] md:min-h-screen border-r border-border bg-[#F8FFFE]">
+    <aside className="hidden md:flex md:flex-col md:w-[280px] md:min-h-screen border-r border-white/10 bg-[#1E3A5F]">
       {/* Logo */}
-      <div className="flex items-center gap-3 px-6 py-5 border-b border-border">
-        <div className="flex items-center justify-center size-9 rounded-lg bg-teal-600">
+      <div className="flex items-center gap-3 px-6 py-5 border-b border-white/10">
+        <div className="flex items-center justify-center size-9 rounded-lg bg-[#D4A853]">
           <Anchor className="size-5 text-white" />
         </div>
-        <span className="text-xl font-bold text-foreground">LCBconnect</span>
+        <span className="text-xl font-bold text-white">LCBconnect</span>
       </div>
 
       {/* Navigation */}
@@ -90,14 +90,14 @@ export function Sidebar({ profile }: SidebarProps) {
                 className={cn(
                   "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
                   active
-                    ? "bg-teal-50 text-teal-700 border-l-3 border-teal-500"
-                    : "text-muted-foreground hover:bg-accent hover:text-foreground"
+                    ? "bg-white/10 text-white border-l-3 border-[#D4A853]"
+                    : "text-slate-400 hover:bg-white/5 hover:text-slate-200"
                 )}
               >
                 <Icon
                   className={cn(
                     "size-5 shrink-0",
-                    active ? "text-teal-600" : "text-muted-foreground"
+                    active ? "text-white" : "text-slate-400"
                   )}
                 />
                 {item.label}
@@ -110,7 +110,7 @@ export function Sidebar({ profile }: SidebarProps) {
         {showAdmin && (
           <div className="mt-6">
             <div className="px-3 mb-2">
-              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">
                 Administration
               </p>
             </div>
@@ -125,14 +125,14 @@ export function Sidebar({ profile }: SidebarProps) {
                     className={cn(
                       "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
                       active
-                        ? "bg-teal-50 text-teal-700 border-l-3 border-teal-500"
-                        : "text-muted-foreground hover:bg-accent hover:text-foreground"
+                        ? "bg-white/10 text-white border-l-3 border-[#D4A853]"
+                        : "text-slate-400 hover:bg-white/5 hover:text-slate-200"
                     )}
                   >
                     <Icon
                       className={cn(
                         "size-5 shrink-0",
-                        active ? "text-teal-600" : "text-muted-foreground"
+                        active ? "text-white" : "text-slate-400"
                       )}
                     />
                     {item.label}
@@ -145,7 +145,7 @@ export function Sidebar({ profile }: SidebarProps) {
       </nav>
 
       {/* User section */}
-      <div className="border-t border-border p-3">
+      <div className="border-t border-white/10 p-3">
         <div className="flex items-center gap-3 rounded-lg p-3">
           <Link href="/profile" className="shrink-0">
             <Avatar>
@@ -153,27 +153,27 @@ export function Sidebar({ profile }: SidebarProps) {
                 src={profile.avatar_url ?? undefined}
                 alt={profile.full_name}
               />
-              <AvatarFallback className="bg-teal-100 text-teal-700 text-xs">
+              <AvatarFallback className="bg-[#D4A853]/20 text-[#D4A853] text-xs">
                 {getInitials(profile.full_name)}
               </AvatarFallback>
             </Avatar>
           </Link>
           <div className="flex-1 min-w-0">
             <Link href="/profile">
-              <p className="text-sm font-medium text-foreground truncate">
+              <p className="text-sm font-medium text-white truncate">
                 {profile.full_name}
               </p>
             </Link>
             <Badge
               variant="secondary"
-              className="text-[10px] px-1.5 py-0 h-4 font-normal"
+              className="text-[10px] px-1.5 py-0 h-4 font-normal bg-white/10 text-slate-300 border-0"
             >
               {ROLE_LABELS[profile.role]}
             </Badge>
           </div>
           <Link
             href="/notifications"
-            className="shrink-0 flex items-center justify-center size-9 rounded-lg text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
+            className="shrink-0 flex items-center justify-center size-9 rounded-lg text-slate-400 hover:bg-white/10 hover:text-white transition-colors"
           >
             <Bell className="size-5" />
           </Link>

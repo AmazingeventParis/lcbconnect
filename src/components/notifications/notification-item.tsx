@@ -102,7 +102,7 @@ export function NotificationItem({
         "w-full flex items-start gap-3 p-4 text-left transition-colors hover:bg-slate-50 border-l-4",
         notification.is_read
           ? "border-l-transparent bg-white"
-          : "border-l-teal-500 bg-teal-50/30"
+          : "border-l-[#D4A853] bg-[#D4A853]/10"
       )}
     >
       {/* Icon */}
@@ -141,7 +141,7 @@ export function NotificationItem({
       {/* Unread dot */}
       {!notification.is_read && (
         <div className="flex-shrink-0 mt-2">
-          <div className="size-2.5 rounded-full bg-teal-500" />
+          <div className="size-2.5 rounded-full bg-[#D4A853]" />
         </div>
       )}
     </button>
