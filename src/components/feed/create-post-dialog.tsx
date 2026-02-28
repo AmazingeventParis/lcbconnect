@@ -3,11 +3,19 @@
 import { useState, useCallback, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { ImagePlusIcon, XIcon, Loader2Icon } from "lucide-react";
+import {
+  ImagePlusIcon,
+  XIcon,
+  Loader2Icon,
+  FileTextIcon,
+  WrenchIcon,
+  ShieldIcon,
+} from "lucide-react";
 import { toast } from "sonner";
 
 import { createClient } from "@/lib/supabase/client";
 import { postSchema, type PostValues } from "@/lib/validators";
+import { cn } from "@/lib/utils";
 import type { Profile } from "@/lib/supabase/types";
 import type { PostType } from "@/lib/constants";
 
@@ -29,13 +37,6 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 
 interface CreatePostDialogProps {
   open: boolean;
@@ -44,14 +45,16 @@ interface CreatePostDialogProps {
   onPostCreated: () => void;
 }
 
-const POST_TYPE_OPTIONS: { value: PostType; label: string; minRole?: string }[] =
-  [
-    { value: "standard", label: "Publication" },
-    { value: "service", label: "Service" },
-    { value: "plainte", label: "Plainte" },
-    { value: "officiel_bureau", label: "Communication officielle", minRole: "bureau" },
-    { value: "avis_batellerie", label: "Avis à la batellerie", minRole: "bureau" },
-  ];
+const POST_TYPE_OPTIONS: {
+  value: PostType;
+  label: string;
+  icon: React.ElementType;
+  minRole?: string;
+}[] = [
+  { value: "standard", label: "Général", icon: FileTextIcon },
+  { value: "service", label: "Service", icon: WrenchIcon },
+  { value: "officiel_bureau", label: "Officiel", icon: ShieldIcon, minRole: "bureau" },
+];
 
 export function CreatePostDialog({
   open,
@@ -226,23 +229,30 @@ export function CreatePostDialog({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Type de publication</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                  >
-                    <FormControl>
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Type de publication" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {availableTypes.map((type) => (
-                        <SelectItem key={type.value} value={type.value}>
-                          {type.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <FormControl>
+                    <div className="flex gap-2">
+                      {availableTypes.map((type) => {
+                        const Icon = type.icon;
+                        const selected = field.value === type.value;
+                        return (
+                          <button
+                            key={type.value}
+                            type="button"
+                            onClick={() => field.onChange(type.value)}
+                            className={cn(
+                              "flex-1 flex items-center justify-center gap-2 rounded-lg border px-3 py-2.5 text-sm font-medium transition-colors",
+                              selected
+                                ? "border-[#1E3A5F] bg-[#1E3A5F]/10 text-[#1E3A5F]"
+                                : "border-border bg-background text-muted-foreground hover:bg-accent hover:text-foreground"
+                            )}
+                          >
+                            <Icon className="size-4" />
+                            {type.label}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}

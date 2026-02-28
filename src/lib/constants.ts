@@ -7,7 +7,7 @@ export const ROLES = {
 export type Role = keyof typeof ROLES;
 
 export const POST_TYPES = {
-  standard: { label: "Publication", icon: "FileText" },
+  standard: { label: "Général", icon: "FileText" },
   service: { label: "Service", icon: "Wrench" },
   plainte: { label: "Plainte", icon: "AlertTriangle" },
   officiel_bureau: { label: "Communication officielle", icon: "Shield" },

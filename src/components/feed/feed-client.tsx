@@ -22,7 +22,7 @@ interface FeedClientProps {
 
 const FILTER_TABS: { value: PostType | "all"; label: string }[] = [
   { value: "all", label: "Tout" },
-  { value: "standard", label: "Publications" },
+  { value: "standard", label: "Général" },
   { value: "service", label: "Services" },
   { value: "officiel_bureau", label: "Officiel" },
 ];
