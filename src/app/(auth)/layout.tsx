@@ -1,4 +1,4 @@
-import { Anchor } from "lucide-react";
+import Image from "next/image";
 
 export default function AuthLayout({
   children,
@@ -10,7 +10,13 @@ export default function AuthLayout({
       <div className="w-full max-w-md space-y-8">
         <div className="flex flex-col items-center space-y-2 text-center">
           <div className="flex items-center gap-3">
-            <Anchor className="size-10 text-white" />
+            <Image
+              src="/logo.jpg"
+              alt="La Cerise sur le Bateau"
+              width={48}
+              height={48}
+              className="size-12 rounded-lg object-cover"
+            />
             <h1 className="text-3xl font-bold text-white">LCBconnect</h1>
           </div>
           <p className="text-[#D4A853]">La Cerise sur le Bateau</p>

@@ -1,9 +1,9 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
-  Anchor,
   Newspaper,
   Ship,
   FileText,
@@ -72,9 +72,13 @@ export function Sidebar({ profile }: SidebarProps) {
     <aside className="hidden md:flex md:flex-col md:w-[280px] md:min-h-screen border-r border-white/10 bg-[#1E3A5F]">
       {/* Logo */}
       <div className="flex items-center gap-3 px-6 py-5 border-b border-white/10">
-        <div className="flex items-center justify-center size-9 rounded-lg bg-[#D4A853]">
-          <Anchor className="size-5 text-white" />
-        </div>
+        <Image
+          src="/logo.jpg"
+          alt="La Cerise sur le Bateau"
+          width={36}
+          height={36}
+          className="size-9 rounded-lg object-cover"
+        />
         <span className="text-xl font-bold text-white">LCBconnect</span>
       </div>
 
