@@ -114,7 +114,7 @@ export function PostDetail({ post, currentUser }: PostDetailProps) {
     } catch {
       setLiked(wasLiked);
       setLikesCount(prevCount);
-      toast.error("Erreur lors de la mise a jour du like");
+      toast.error("Erreur lors de la mise à jour du like");
     } finally {
       setLikeLoading(false);
     }
@@ -123,7 +123,7 @@ export function PostDetail({ post, currentUser }: PostDetailProps) {
   const handleShare = useCallback(async () => {
     try {
       await navigator.clipboard.writeText(window.location.href);
-      toast.success("Lien copie dans le presse-papier");
+      toast.success("Lien copié dans le presse-papier");
     } catch {
       toast.error("Impossible de copier le lien");
     }
@@ -188,7 +188,7 @@ export function PostDetail({ post, currentUser }: PostDetailProps) {
                 {post.is_pinned && (
                   <span className="flex items-center gap-0.5 text-amber-600">
                     <PinIcon className="size-3" />
-                    Epingle
+                    Épinglé
                   </span>
                 )}
               </div>

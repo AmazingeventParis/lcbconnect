@@ -125,9 +125,9 @@ function CommentItem({
         replyForm.reset();
         setShowReplyForm(false);
         onCommentAdded();
-        toast.success("Reponse ajoutee");
+        toast.success("Réponse ajoutée");
       } catch {
-        toast.error("Erreur lors de l'ajout de la reponse");
+        toast.error("Erreur lors de l'ajout de la réponse");
       } finally {
         setSubmitting(false);
       }
@@ -184,7 +184,7 @@ function CommentItem({
                 className="text-xs text-muted-foreground hover:text-foreground font-medium"
                 onClick={() => setShowReplyForm(!showReplyForm)}
               >
-                Repondre
+                Répondre
               </button>
             )}
           </div>
@@ -196,7 +196,7 @@ function CommentItem({
             >
               <div className="flex-1">
                 <Textarea
-                  placeholder={`Repondre a ${comment.author.full_name}...`}
+                  placeholder={`Répondre à ${comment.author.full_name}...`}
                   className="min-h-[60px] text-sm"
                   {...replyForm.register("content")}
                 />
@@ -334,7 +334,7 @@ export function CommentsSection({ postId, currentUser }: CommentsSectionProps) {
 
         form.reset();
         fetchComments();
-        toast.success("Commentaire ajoute");
+        toast.success("Commentaire ajouté");
       } catch {
         toast.error("Erreur lors de l'ajout du commentaire");
       } finally {
@@ -375,7 +375,7 @@ export function CommentsSection({ postId, currentUser }: CommentsSectionProps) {
         </Avatar>
         <div className="flex-1 space-y-2">
           <Textarea
-            placeholder="Ecrire un commentaire..."
+            placeholder="Écrire un commentaire..."
             className="min-h-[80px]"
             {...form.register("content")}
           />
@@ -421,7 +421,7 @@ export function CommentsSection({ postId, currentUser }: CommentsSectionProps) {
         <div className="text-center py-8 text-muted-foreground">
           <CornerDownRightIcon className="size-8 mx-auto mb-2 opacity-50" />
           <p className="text-sm">Aucun commentaire pour le moment</p>
-          <p className="text-xs">Soyez le premier a commenter</p>
+          <p className="text-xs">Soyez le premier à commenter</p>
         </div>
       ) : (
         <div className="space-y-4">

@@ -18,12 +18,12 @@ import {
 import type { Profile } from "@/lib/supabase/types";
 
 const ROUTE_TITLES: Record<string, string> = {
-  "/feed": "Fil d'actualites",
+  "/feed": "Fil d'actualités",
   "/services": "Services",
   "/complaints": "Plaintes",
   "/avis-batellerie": "Avis Batellerie",
   "/documents": "Documents",
-  "/events": "Evenements",
+  "/events": "Événements",
   "/directory": "Annuaire",
   "/messages": "Messages",
   "/notifications": "Notifications",
@@ -140,7 +140,7 @@ export function Header({ profile }: HeaderProps) {
               className="cursor-pointer"
             >
               <LogOut className="size-4" />
-              Se deconnecter
+              Se déconnecter
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

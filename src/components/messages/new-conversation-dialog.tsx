@@ -164,7 +164,7 @@ export function NewConversationDialog({
       onOpenChange(false);
     } catch (err) {
       console.error(err);
-      toast.error("Erreur lors de la creation de la conversation");
+      toast.error("Erreur lors de la création de la conversation");
     } finally {
       setCreating(false);
     }
@@ -173,7 +173,7 @@ export function NewConversationDialog({
   // Create group conversation
   const handleCreateGroup = async () => {
     if (selectedUsers.length < 1) {
-      toast.error("Selectionnez au moins 1 membre pour un groupe");
+      toast.error("Sélectionnez au moins 1 membre pour un groupe");
       return;
     }
     if (!groupName.trim()) {
@@ -213,7 +213,7 @@ export function NewConversationDialog({
       onOpenChange(false);
     } catch (err) {
       console.error(err);
-      toast.error("Erreur lors de la creation du groupe");
+      toast.error("Erreur lors de la création du groupe");
     } finally {
       setCreating(false);
     }
@@ -226,8 +226,8 @@ export function NewConversationDialog({
           <DialogTitle>Nouvelle conversation</DialogTitle>
           <DialogDescription>
             {isGroupMode
-              ? "Creez un groupe de discussion"
-              : "Selectionnez un membre pour demarrer une conversation"}
+              ? "Créez un groupe de discussion"
+              : "Sélectionnez un membre pour démarrer une conversation"}
           </DialogDescription>
         </DialogHeader>
 
@@ -260,7 +260,7 @@ export function NewConversationDialog({
             <Label htmlFor="group-name">Nom du groupe</Label>
             <Input
               id="group-name"
-              placeholder="Ex: Equipage du port"
+              placeholder="Ex: Équipage du port"
               value={groupName}
               onChange={(e) => setGroupName(e.target.value)}
             />
@@ -286,7 +286,7 @@ export function NewConversationDialog({
             </div>
           ) : members.length === 0 ? (
             <div className="flex items-center justify-center h-full text-muted-foreground text-sm">
-              Aucun membre trouve
+              Aucun membre trouvé
             </div>
           ) : (
             <div className="space-y-0.5 px-2">
@@ -355,7 +355,7 @@ export function NewConversationDialog({
             className="w-full"
           >
             {creating && <Loader2 className="size-4 mr-2 animate-spin" />}
-            Creer le groupe ({selectedUsers.length} membre
+            Créer le groupe ({selectedUsers.length} membre
             {selectedUsers.length > 1 ? "s" : ""} + vous)
           </Button>
         )}
@@ -363,7 +363,7 @@ export function NewConversationDialog({
         {creating && !isGroupMode && (
           <div className="flex items-center justify-center py-2 text-sm text-muted-foreground">
             <Loader2 className="size-4 mr-2 animate-spin" />
-            Creation en cours...
+            Création en cours...
           </div>
         )}
       </DialogContent>

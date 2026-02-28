@@ -416,7 +416,7 @@ export function ChatView({
                 e.target.style.height = `${Math.min(e.target.scrollHeight, 120)}px`;
               }}
               onKeyDown={handleKeyDown}
-              placeholder="Ecrivez un message..."
+              placeholder="Écrivez un message..."
               className={cn(
                 "w-full resize-none rounded-2xl border bg-gray-50 px-4 py-2.5 text-sm",
                 "focus:outline-none focus:ring-2 focus:ring-[#1E3A5F] focus:border-transparent",

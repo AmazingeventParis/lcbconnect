@@ -29,7 +29,7 @@ export async function POST(request: NextRequest) {
       // Handle duplicate email
       if (error.message.includes("already been registered")) {
         return NextResponse.json(
-          { error: "Cette adresse e-mail est deja utilisee." },
+          { error: "Cette adresse e-mail est déjà utilisée." },
           { status: 409 }
         );
       }

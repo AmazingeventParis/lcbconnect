@@ -17,7 +17,7 @@ export default function OfflinePage() {
 
         <p className="mb-8 text-gray-500">
           Vous semblez ne pas avoir de connexion internet.
-          Verifiez votre connexion et reessayez.
+          Vérifiez votre connexion et réessayez.
         </p>
 
         <Button
@@ -26,11 +26,11 @@ export default function OfflinePage() {
           size="lg"
         >
           <RefreshCw className="h-4 w-4" />
-          Reessayer
+          Réessayer
         </Button>
 
         <p className="mt-6 text-xs text-gray-400">
-          Certaines pages consultees recemment peuvent etre
+          Certaines pages consultées récemment peuvent être
           disponibles hors connexion.
         </p>
       </div>

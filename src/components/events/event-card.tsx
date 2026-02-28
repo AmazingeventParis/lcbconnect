@@ -55,7 +55,7 @@ export function EventCard({
         .eq("user_id", profile.id);
 
       if (error) {
-        toast.error("Erreur lors de la desinscription.");
+        toast.error("Erreur lors de la désinscription.");
       } else {
         // Decrement registrations_count
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -66,13 +66,13 @@ export function EventCard({
           })
           .eq("id", event.id);
 
-        toast.success("Desinscription confirmee.");
+        toast.success("Désinscription confirmée.");
         onRegistrationChange();
       }
     } else {
       // Check if full
       if (isFull) {
-        toast.error("Cet evenement est complet.");
+        toast.error("Cet événement est complet.");
         setLoading(false);
         return;
       }
@@ -88,7 +88,7 @@ export function EventCard({
 
       if (error) {
         if (error.code === "23505") {
-          toast.error("Vous etes deja inscrit a cet evenement.");
+          toast.error("Vous êtes déjà inscrit à cet événement.");
         } else {
           toast.error("Erreur lors de l'inscription.");
         }
@@ -102,7 +102,7 @@ export function EventCard({
           })
           .eq("id", event.id);
 
-        toast.success("Inscription confirmee !");
+        toast.success("Inscription confirmée !");
         onRegistrationChange();
       }
     }
@@ -147,7 +147,7 @@ export function EventCard({
                 </div>
                 {eventPast && (
                   <Badge variant="secondary" className="shrink-0 text-xs">
-                    Termine
+                    Terminé
                   </Badge>
                 )}
               </div>
@@ -189,7 +189,7 @@ export function EventCard({
                     {loading ? (
                       <Loader2 className="h-3.5 w-3.5 animate-spin" />
                     ) : isRegistered ? (
-                      "Se desinscrire"
+                      "Se désinscrire"
                     ) : isFull ? (
                       "Complet"
                     ) : (

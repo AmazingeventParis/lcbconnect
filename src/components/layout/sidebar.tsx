@@ -29,10 +29,10 @@ const ROLE_LABELS: Record<Role, string> = {
 };
 
 const NAV_ITEMS = [
-  { href: "/feed", label: "Fil d'actualites", icon: Newspaper },
+  { href: "/feed", label: "Fil d'actualités", icon: Newspaper },
   { href: "/avis-batellerie", label: "Avis Batellerie", icon: Ship },
   { href: "/documents", label: "Documents", icon: FileText },
-  { href: "/events", label: "Evenements", icon: Calendar },
+  { href: "/events", label: "Événements", icon: Calendar },
   { href: "/directory", label: "Annuaire", icon: BookOpen },
   { href: "/messages", label: "Messages", icon: MessageSquare },
   { href: "/carte", label: "Carte", icon: Map },

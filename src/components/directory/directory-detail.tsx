@@ -208,7 +208,7 @@ export function DirectoryDetail({ entryId, profile }: DirectoryDetailProps) {
       if (error) {
         toast.error("Erreur lors de l'approbation.");
       } else {
-        toast.success("Adresse approuvee.");
+        toast.success("Adresse approuvée.");
         fetchEntry();
       }
     } else {
@@ -222,7 +222,7 @@ export function DirectoryDetail({ entryId, profile }: DirectoryDetailProps) {
       if (error) {
         toast.error("Erreur lors du rejet.");
       } else {
-        toast.success("Adresse rejetee et supprimee.");
+        toast.success("Adresse rejetée et supprimée.");
         router.push("/directory");
       }
     }
@@ -251,7 +251,7 @@ export function DirectoryDetail({ entryId, profile }: DirectoryDetailProps) {
 
     if (error) {
       if (error.code === "23505") {
-        toast.error("Vous avez deja laisse un avis pour cette adresse.");
+        toast.error("Vous avez déjà laissé un avis pour cette adresse.");
       } else {
         toast.error("Erreur lors de l'envoi de l'avis.");
       }
@@ -271,7 +271,7 @@ export function DirectoryDetail({ entryId, profile }: DirectoryDetailProps) {
         })
         .eq("id", entry.id);
 
-      toast.success("Avis envoye !");
+      toast.success("Avis envoyé !");
       form.reset();
       setStarValue(0);
       fetchEntry();
@@ -307,7 +307,7 @@ export function DirectoryDetail({ entryId, profile }: DirectoryDetailProps) {
         className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground mb-6 transition-colors"
       >
         <ArrowLeft className="h-4 w-4" />
-        Retour a l&apos;annuaire
+        Retour à l&apos;annuaire
       </Link>
 
       <Card className="gap-0 py-0">
@@ -412,7 +412,7 @@ export function DirectoryDetail({ entryId, profile }: DirectoryDetailProps) {
               <Separator className="my-6" />
               <div className="mb-6">
                 <h2 className="text-sm font-semibold mb-3">
-                  Moderation
+                  Modération
                 </h2>
                 <div className="flex items-center gap-3">
                   <Button
@@ -542,7 +542,7 @@ export function DirectoryDetail({ entryId, profile }: DirectoryDetailProps) {
                           <FormLabel>Commentaire (optionnel)</FormLabel>
                           <FormControl>
                             <Textarea
-                              placeholder="Partagez votre experience..."
+                              placeholder="Partagez votre expérience..."
                               rows={3}
                               {...field}
                             />
@@ -573,7 +573,7 @@ export function DirectoryDetail({ entryId, profile }: DirectoryDetailProps) {
 
           {hasReviewed && (
             <p className="text-sm text-muted-foreground italic mt-4">
-              Vous avez deja laisse un avis pour cette adresse.
+              Vous avez déjà laissé un avis pour cette adresse.
             </p>
           )}
         </CardContent>

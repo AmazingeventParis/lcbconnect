@@ -81,7 +81,7 @@ export function MessagesClient({ profile }: MessagesClientProps) {
             <MessageCircle className="size-16 mb-4 opacity-30" />
             <p className="text-lg font-medium">Vos messages</p>
             <p className="text-sm mt-1">
-              Selectionnez une conversation ou demarrez-en une nouvelle
+              Sélectionnez une conversation ou démarrez-en une nouvelle
             </p>
             <Button
               variant="outline"

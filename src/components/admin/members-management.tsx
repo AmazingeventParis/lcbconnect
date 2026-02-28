@@ -727,10 +727,10 @@ export function MembersManagement({ profile }: MembersManagementProps) {
           <AlertDialogHeader>
             <AlertDialogTitle>Supprimer ce membre ?</AlertDialogTitle>
             <AlertDialogDescription>
-              Vous allez supprimer definitivement le compte de{" "}
+              Vous allez supprimer définitivement le compte de{" "}
               <strong>{deleteTarget?.full_name}</strong> ({deleteTarget?.email}
-              ). Cette action est irreversible. Toutes les donnees associees
-              (posts, commentaires, messages) seront supprimees.
+              ). Cette action est irréversible. Toutes les données associées
+              (posts, commentaires, messages) seront supprimées.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -742,7 +742,7 @@ export function MembersManagement({ profile }: MembersManagementProps) {
               }
             >
               <Trash2 className="size-4" />
-              Supprimer definitivement
+              Supprimer définitivement
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

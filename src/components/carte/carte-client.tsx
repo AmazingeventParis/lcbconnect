@@ -242,7 +242,7 @@ export function CarteClient() {
             {status === "connected" ? (
               <>
                 <Wifi className="size-4 text-green-500" />
-                <span className="text-xs text-green-600">Connecte</span>
+                <span className="text-xs text-green-600">Connecté</span>
               </>
             ) : status === "connecting" ? (
               <>
@@ -252,7 +252,7 @@ export function CarteClient() {
             ) : (
               <>
                 <WifiOff className="size-4 text-red-500" />
-                <span className="text-xs text-red-600">Deconnecte</span>
+                <span className="text-xs text-red-600">Déconnecté</span>
               </>
             )}
           </div>

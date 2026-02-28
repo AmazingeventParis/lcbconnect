@@ -50,7 +50,7 @@ const POST_TYPE_OPTIONS: { value: PostType; label: string; minRole?: string }[] 
     { value: "service", label: "Service" },
     { value: "plainte", label: "Plainte" },
     { value: "officiel_bureau", label: "Communication officielle", minRole: "bureau" },
-    { value: "avis_batellerie", label: "Avis a la batellerie", minRole: "bureau" },
+    { value: "avis_batellerie", label: "Avis à la batellerie", minRole: "bureau" },
   ];
 
 export function CreatePostDialog({
@@ -179,7 +179,7 @@ export function CreatePostDialog({
           throw error;
         }
 
-        toast.success("Publication creee avec succes");
+        toast.success("Publication créée avec succès");
         form.reset();
         setPhotoFiles([]);
         setPhotoPreviews([]);
@@ -187,7 +187,7 @@ export function CreatePostDialog({
         onPostCreated();
       } catch (err) {
         console.error("Error creating post:", err);
-        toast.error("Erreur lors de la creation de la publication");
+        toast.error("Erreur lors de la création de la publication");
       } finally {
         setSubmitting(false);
         setUploading(false);
@@ -212,9 +212,9 @@ export function CreatePostDialog({
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Creer une publication</DialogTitle>
+          <DialogTitle>Créer une publication</DialogTitle>
           <DialogDescription>
-            Partagez avec la communaute
+            Partagez avec la communauté
           </DialogDescription>
         </DialogHeader>
 

@@ -43,7 +43,7 @@ export async function GET(
 
   if (error || !event) {
     return NextResponse.json(
-      { error: "Evenement introuvable" },
+      { error: "Événement introuvable" },
       { status: 404 }
     );
   }

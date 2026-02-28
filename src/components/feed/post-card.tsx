@@ -120,7 +120,7 @@ export function PostCard({ post, currentUserId, onLikeChange }: PostCardProps) {
         setLiked(wasLiked);
         setLikesCount(prevCount);
         onLikeChange?.(post.id, wasLiked, prevCount);
-        toast.error("Erreur lors de la mise a jour du like");
+        toast.error("Erreur lors de la mise à jour du like");
       } finally {
         setLikeLoading(false);
       }
@@ -136,7 +136,7 @@ export function PostCard({ post, currentUserId, onLikeChange }: PostCardProps) {
         await navigator.clipboard.writeText(
           `${window.location.origin}/feed/${post.id}`
         );
-        toast.success("Lien copie dans le presse-papier");
+        toast.success("Lien copié dans le presse-papier");
       } catch {
         toast.error("Impossible de copier le lien");
       }
@@ -196,7 +196,7 @@ export function PostCard({ post, currentUserId, onLikeChange }: PostCardProps) {
             {post.is_pinned && (
               <span className="flex items-center gap-0.5 text-amber-600">
                 <PinIcon className="size-3" />
-                Epingle
+                Épinglé
               </span>
             )}
           </div>

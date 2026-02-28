@@ -42,7 +42,7 @@ const LIMITATION_LABELS: Record<string, { label: string; color: string }> = {
   CAUTIO: { label: "Vigilance", color: "bg-amber-100 text-amber-800" },
   AVADEP: { label: "Tirant d'eau", color: "bg-blue-100 text-blue-800" },
   NOLIM: { label: "Normal", color: "bg-green-100 text-green-800" },
-  CLOSED: { label: "Ferme", color: "bg-red-100 text-red-800" },
+  CLOSED: { label: "Fermé", color: "bg-red-100 text-red-800" },
   RESTR: { label: "Restriction", color: "bg-amber-100 text-amber-800" },
 };
 
@@ -146,7 +146,7 @@ function NtsCard({ notice }: { notice: NtsNotice }) {
                 <div className="flex items-start gap-2">
                   <FileText className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
                   <div>
-                    <p className="text-xs text-muted-foreground">Reference</p>
+                    <p className="text-xs text-muted-foreground">Référence</p>
                     <p className="font-medium">{notice.number}</p>
                   </div>
                 </div>
@@ -167,7 +167,7 @@ function NtsCard({ notice }: { notice: NtsNotice }) {
                   <Clock className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
                   <div>
                     <p className="text-xs text-muted-foreground">
-                      Publie le
+                      Publié le
                     </p>
                     <p className="font-medium">
                       {format(
@@ -183,14 +183,14 @@ function NtsCard({ notice }: { notice: NtsNotice }) {
                 <div className="flex items-start gap-2">
                   <Calendar className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
                   <div>
-                    <p className="text-xs text-muted-foreground">Validite</p>
+                    <p className="text-xs text-muted-foreground">Validité</p>
                     <p className="font-medium">
                       {format(new Date(notice.dateStart), "dd MMM yyyy", {
                         locale: fr,
                       })}
                       {notice.dateEnd && notice.dateEnd !== "9999-12-31"
                         ? ` → ${format(new Date(notice.dateEnd), "dd MMM yyyy", { locale: fr })}`
-                        : " → Indefini"}
+                        : " → Indéfini"}
                     </p>
                   </div>
                 </div>
@@ -201,7 +201,7 @@ function NtsCard({ notice }: { notice: NtsNotice }) {
                     <MapPin className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
                     <div>
                       <p className="text-xs text-muted-foreground">
-                        Voies concernees
+                        Voies concernées
                       </p>
                       <p className="font-medium">
                         {notice.fairways.join(", ")}
@@ -230,7 +230,7 @@ function NtsCard({ notice }: { notice: NtsNotice }) {
                 className="inline-flex items-center gap-1.5 mt-1 text-sm text-[#1E3A5F] hover:text-[#1E3A5F]/80 hover:underline"
               >
                 <ExternalLink className="h-3.5 w-3.5" />
-                Voir la fiche complete sur EuRIS
+                Voir la fiche complète sur EuRIS
               </a>
             </div>
           </div>
@@ -282,9 +282,9 @@ export function AvisClient() {
     <div className="mx-auto max-w-4xl p-6">
       {/* En-tete */}
       <div className="mb-6">
-        <h1 className="text-2xl font-bold">Avis a la batellerie</h1>
+        <h1 className="text-2xl font-bold">Avis à la batellerie</h1>
         <p className="text-muted-foreground mt-1">
-          Avis officiels VNF pour les voies navigables d&apos;Ile-de-France.
+          Avis officiels VNF pour les voies navigables d&apos;Île-de-France.
         </p>
       </div>
 
@@ -332,10 +332,10 @@ export function AvisClient() {
           <h3 className="text-lg font-semibold">Aucun avis</h3>
           <p className="text-muted-foreground mt-1 max-w-md">
             {filter === "urgents"
-              ? "Aucun avis urgent en cours pour l'Ile-de-France."
+              ? "Aucun avis urgent en cours pour l'Île-de-France."
               : filter === "vigilance"
                 ? "Aucun avis de vigilance en cours."
-                : "Aucun avis officiel pour l'Ile-de-France."}
+                : "Aucun avis officiel pour l'Île-de-France."}
           </p>
         </div>
       ) : (

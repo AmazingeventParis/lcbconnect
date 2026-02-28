@@ -90,7 +90,7 @@ export function EventDetail({ eventId, profile }: EventDetailProps) {
       .single();
 
     if (error || !data) {
-      toast.error("Evenement introuvable.");
+      toast.error("Événement introuvable.");
       router.push("/events");
       return;
     }
@@ -143,7 +143,7 @@ export function EventDetail({ eventId, profile }: EventDetailProps) {
         .eq("user_id", profile.id);
 
       if (error) {
-        toast.error("Erreur lors de la desinscription.");
+        toast.error("Erreur lors de la désinscription.");
       } else {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         await (supabase as any)
@@ -153,7 +153,7 @@ export function EventDetail({ eventId, profile }: EventDetailProps) {
           })
           .eq("id", event.id);
 
-        toast.success("Desinscription confirmee.");
+        toast.success("Désinscription confirmée.");
         fetchEvent();
       }
     } else {
@@ -162,7 +162,7 @@ export function EventDetail({ eventId, profile }: EventDetailProps) {
         event.max_participants !== null &&
         event.registrations_count >= event.max_participants
       ) {
-        toast.error("Cet evenement est complet.");
+        toast.error("Cet événement est complet.");
         setRegistering(false);
         return;
       }
@@ -177,7 +177,7 @@ export function EventDetail({ eventId, profile }: EventDetailProps) {
 
       if (error) {
         if (error.code === "23505") {
-          toast.error("Vous etes deja inscrit a cet evenement.");
+          toast.error("Vous êtes déjà inscrit à cet événement.");
         } else {
           toast.error("Erreur lors de l'inscription.");
         }
@@ -190,7 +190,7 @@ export function EventDetail({ eventId, profile }: EventDetailProps) {
           })
           .eq("id", event.id);
 
-        toast.success("Inscription confirmee !");
+        toast.success("Inscription confirmée !");
         fetchEvent();
       }
     }
@@ -222,9 +222,9 @@ export function EventDetail({ eventId, profile }: EventDetailProps) {
       .eq("id", event.id);
 
     if (error) {
-      toast.error("Erreur lors de la mise a jour.");
+      toast.error("Erreur lors de la mise à jour.");
     } else {
-      toast.success("Evenement mis a jour.");
+      toast.success("Événement mis à jour.");
       setEditOpen(false);
       fetchEvent();
     }
@@ -263,7 +263,7 @@ export function EventDetail({ eventId, profile }: EventDetailProps) {
         className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground mb-6 transition-colors"
       >
         <ArrowLeft className="h-4 w-4" />
-        Retour aux evenements
+        Retour aux événements
       </Link>
 
       <Card className="gap-0 py-0">
@@ -274,7 +274,7 @@ export function EventDetail({ eventId, profile }: EventDetailProps) {
               <h1 className="text-xl font-bold">{event.title}</h1>
               {eventPast && (
                 <Badge variant="secondary" className="mt-2">
-                  Evenement termine
+                  Événement terminé
                 </Badge>
               )}
             </div>
@@ -372,7 +372,7 @@ export function EventDetail({ eventId, profile }: EventDetailProps) {
                     Traitement...
                   </>
                 ) : isRegistered ? (
-                  "Se desinscrire"
+                  "Se désinscrire"
                 ) : isFull ? (
                   "Complet"
                 ) : (
@@ -439,9 +439,9 @@ export function EventDetail({ eventId, profile }: EventDetailProps) {
       <Dialog open={editOpen} onOpenChange={setEditOpen}>
         <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Modifier l&apos;evenement</DialogTitle>
+            <DialogTitle>Modifier l&apos;événement</DialogTitle>
             <DialogDescription>
-              Modifiez les informations de l&apos;evenement.
+              Modifiez les informations de l&apos;événement.
             </DialogDescription>
           </DialogHeader>
 
@@ -479,7 +479,7 @@ export function EventDetail({ eventId, profile }: EventDetailProps) {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="text-sm font-medium mb-1.5 block">
-                  Date de debut
+                  Date de début
                 </label>
                 <Input
                   type="datetime-local"
@@ -516,7 +516,7 @@ export function EventDetail({ eventId, profile }: EventDetailProps) {
                     max_participants: e.target.value,
                   })
                 }
-                placeholder="Illimite"
+                placeholder="Illimité"
               />
             </div>
           </div>

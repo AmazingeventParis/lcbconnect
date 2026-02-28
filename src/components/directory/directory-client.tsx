@@ -26,10 +26,10 @@ const DIRECTORY_CATEGORIES: Record<string, string> = {
   commerce: "Commerce",
   artisan: "Artisan",
   service: "Service",
-  sante: "Sante",
+  sante: "Santé",
   transport: "Transport",
   loisirs: "Loisirs",
-  hebergement: "Hebergement",
+  hebergement: "Hébergement",
   nautique: "Nautique",
   autre: "Autre",
 };
@@ -102,7 +102,7 @@ export function DirectoryClient({ profile }: DirectoryClientProps) {
         <div>
           <h1 className="text-2xl font-bold">Annuaire</h1>
           <p className="text-muted-foreground mt-1">
-            Bonnes adresses recommandees par les membres.
+            Bonnes adresses recommandées par les membres.
           </p>
         </div>
         <Button onClick={() => setDialogOpen(true)}>
@@ -124,10 +124,10 @@ export function DirectoryClient({ profile }: DirectoryClientProps) {
         </div>
         <Select value={categoryFilter} onValueChange={setCategoryFilter}>
           <SelectTrigger className="w-full sm:w-[200px]">
-            <SelectValue placeholder="Categorie" />
+            <SelectValue placeholder="Catégorie" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="toutes">Toutes les categories</SelectItem>
+            <SelectItem value="toutes">Toutes les catégories</SelectItem>
             {Object.entries(DIRECTORY_CATEGORIES).map(([key, label]) => (
               <SelectItem key={key} value={key}>
                 {label}
@@ -155,12 +155,12 @@ export function DirectoryClient({ profile }: DirectoryClientProps) {
             <BookOpen className="h-8 w-8 text-muted-foreground" />
           </div>
           <h3 className="text-lg font-semibold">
-            Aucune adresse trouvee
+            Aucune adresse trouvée
           </h3>
           <p className="text-muted-foreground mt-1 max-w-md">
             {searchQuery
-              ? `Aucun resultat pour "${searchQuery}".`
-              : "Aucune adresse dans l'annuaire pour le moment. Proposez la premiere !"}
+              ? `Aucun résultat pour "${searchQuery}".`
+              : "Aucune adresse dans l'annuaire pour le moment. Proposez la première !"}
           </p>
           <Button onClick={() => setDialogOpen(true)} className="mt-4">
             <Plus className="h-4 w-4" />

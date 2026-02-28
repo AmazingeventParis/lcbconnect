@@ -173,7 +173,7 @@ export function EventsClient({ profile }: EventsClientProps) {
         <div>
           <h1 className="text-2xl font-bold">Calendrier 2026</h1>
           <p className="text-muted-foreground text-sm mt-1">
-            {events.length} evenements programmes
+            {events.length} événements programmés
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -199,7 +199,7 @@ export function EventsClient({ profile }: EventsClientProps) {
           {isAdmin && (
             <Button onClick={() => setDialogOpen(true)} size="sm">
               <Plus className="h-4 w-4" />
-              <span className="hidden sm:inline">Creer</span>
+              <span className="hidden sm:inline">Créer</span>
             </Button>
           )}
         </div>
@@ -242,7 +242,7 @@ export function EventsClient({ profile }: EventsClientProps) {
                 {format(calendarMonth, "MMMM yyyy", { locale: fr })}
               </h2>
               <p className="text-xs text-muted-foreground">
-                {monthEvents.length} evenement{monthEvents.length > 1 ? "s" : ""} ce mois
+                {monthEvents.length} événement{monthEvents.length > 1 ? "s" : ""} ce mois
               </p>
             </div>
             <Button
@@ -414,7 +414,7 @@ export function EventsClient({ profile }: EventsClientProps) {
               </h3>
               {selectedDayEvents.length === 0 ? (
                 <p className="text-muted-foreground text-sm py-4 text-center">
-                  Aucun evenement ce jour
+                  Aucun événement ce jour
                 </p>
               ) : (
                 <div className="space-y-2">
@@ -478,7 +478,7 @@ export function EventsClient({ profile }: EventsClientProps) {
           {upcomingEvents.length > 0 && (
             <div>
               <h2 className="text-lg font-semibold mb-3">
-                Prochains evenements
+                Prochains événements
               </h2>
               <div className="space-y-2">
                 {upcomingEvents.slice(0, 5).map((event) => {
@@ -549,15 +549,15 @@ export function EventsClient({ profile }: EventsClientProps) {
               <div className="rounded-full bg-muted p-4 mb-4">
                 <CalendarDays className="h-8 w-8 text-muted-foreground" />
               </div>
-              <h3 className="text-lg font-semibold">Aucun evenement</h3>
+              <h3 className="text-lg font-semibold">Aucun événement</h3>
               <p className="text-muted-foreground mt-1 max-w-md">
-                Il n&apos;y a pas encore d&apos;evenement prevu.
-                {isAdmin && " Creez le premier !"}
+                Il n&apos;y a pas encore d&apos;événement prévu.
+                {isAdmin && " Créez le premier !"}
               </p>
               {isAdmin && (
                 <Button onClick={() => setDialogOpen(true)} className="mt-4">
                   <Plus className="h-4 w-4" />
-                  Creer un evenement
+                  Créer un événement
                 </Button>
               )}
             </div>
@@ -566,7 +566,7 @@ export function EventsClient({ profile }: EventsClientProps) {
               {upcomingEvents.length > 0 && (
                 <div>
                   <h2 className="text-lg font-semibold mb-3">
-                    Evenements a venir
+                    Événements à venir
                   </h2>
                   <div className="space-y-3">
                     {upcomingEvents.map((event) => (
@@ -588,7 +588,7 @@ export function EventsClient({ profile }: EventsClientProps) {
                     onClick={() => setShowPast(!showPast)}
                     className="flex items-center gap-2 text-lg font-semibold text-muted-foreground hover:text-foreground transition-colors mb-3"
                   >
-                    Evenements passes ({pastEvents.length})
+                    Événements passés ({pastEvents.length})
                     {showPast ? (
                       <ChevronUp className="h-4 w-4" />
                     ) : (

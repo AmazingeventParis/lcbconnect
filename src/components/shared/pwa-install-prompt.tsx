@@ -73,7 +73,7 @@ export function PWAInstallPrompt() {
             Installer l&apos;application
           </p>
           <p className="text-xs text-gray-500">
-            Acces rapide depuis votre ecran d&apos;accueil
+            Accès rapide depuis votre écran d&apos;accueil
           </p>
         </div>
 

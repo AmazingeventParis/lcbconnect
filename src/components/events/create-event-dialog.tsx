@@ -79,11 +79,11 @@ export function CreateEventDialog({
           });
 
         if (error) {
-          toast.error("Erreur lors de la creation de l'evenement.");
+          toast.error("Erreur lors de la création de l'événement.");
           return;
         }
 
-        toast.success("Evenement cree avec succes !");
+        toast.success("Événement créé avec succès !");
         form.reset();
         setMaxParticipants("");
         onCreated();
@@ -105,9 +105,9 @@ export function CreateEventDialog({
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Nouvel evenement</DialogTitle>
+          <DialogTitle>Nouvel événement</DialogTitle>
           <DialogDescription>
-            Creez un evenement pour l&apos;association. Les membres pourront
+            Créez un événement pour l&apos;association. Les membres pourront
             s&apos;y inscrire.
           </DialogDescription>
         </DialogHeader>
@@ -141,7 +141,7 @@ export function CreateEventDialog({
                   <FormLabel>Description</FormLabel>
                   <FormControl>
                     <Textarea
-                      placeholder="Decrivez l'evenement en detail..."
+                      placeholder="Décrivez l'événement en détail..."
                       rows={4}
                       {...field}
                     />
@@ -175,7 +175,7 @@ export function CreateEventDialog({
               name="start_date"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Date et heure de debut</FormLabel>
+                  <FormLabel>Date et heure de début</FormLabel>
                   <FormControl>
                     <Input type="datetime-local" {...field} />
                   </FormControl>
@@ -207,12 +207,12 @@ export function CreateEventDialog({
               <Input
                 type="number"
                 min="1"
-                placeholder="Illimite si vide"
+                placeholder="Illimité si vide"
                 value={maxParticipants}
                 onChange={(e) => setMaxParticipants(e.target.value)}
               />
               <p className="text-xs text-muted-foreground mt-1">
-                Laissez vide pour un nombre illimite de participants.
+                Laissez vide pour un nombre illimité de participants.
               </p>
             </div>
 
@@ -228,10 +228,10 @@ export function CreateEventDialog({
                 {isPending ? (
                   <>
                     <Loader2 className="h-4 w-4 animate-spin" />
-                    Creation...
+                    Création...
                   </>
                 ) : (
-                  "Creer l'evenement"
+                  "Créer l'événement"
                 )}
               </Button>
             </DialogFooter>

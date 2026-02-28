@@ -89,12 +89,12 @@ export function CreateDirectoryDialog({
           });
 
         if (error) {
-          toast.error("Erreur lors de la creation de l'adresse.");
+          toast.error("Erreur lors de la création de l'adresse.");
           return;
         }
 
         toast.success(
-          "Adresse proposee avec succes ! Elle sera visible apres approbation par le bureau."
+          "Adresse proposée avec succès ! Elle sera visible après approbation par le bureau."
         );
         form.reset();
         onCreated();
@@ -117,7 +117,7 @@ export function CreateDirectoryDialog({
         <DialogHeader>
           <DialogTitle>Proposer une adresse</DialogTitle>
           <DialogDescription>
-            Partagez une bonne adresse avec les membres. Elle sera publiee apres
+            Partagez une bonne adresse avec les membres. Elle sera publiée après
             validation par le bureau.
           </DialogDescription>
         </DialogHeader>
@@ -148,14 +148,14 @@ export function CreateDirectoryDialog({
               name="category"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Categorie</FormLabel>
+                  <FormLabel>Catégorie</FormLabel>
                   <Select
                     onValueChange={field.onChange}
                     defaultValue={field.value}
                   >
                     <FormControl>
                       <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Selectionnez une categorie" />
+                        <SelectValue placeholder="Sélectionnez une catégorie" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
@@ -182,7 +182,7 @@ export function CreateDirectoryDialog({
                   <FormLabel>Description</FormLabel>
                   <FormControl>
                     <Textarea
-                      placeholder="Decrivez cette adresse..."
+                      placeholder="Décrivez cette adresse..."
                       rows={4}
                       {...field}
                     />
@@ -198,7 +198,7 @@ export function CreateDirectoryDialog({
               name="phone"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Telephone (optionnel)</FormLabel>
+                  <FormLabel>Téléphone (optionnel)</FormLabel>
                   <FormControl>
                     <Input
                       placeholder="Ex: 01 23 45 67 89"
@@ -256,7 +256,7 @@ export function CreateDirectoryDialog({
                   <FormLabel>Adresse (optionnel)</FormLabel>
                   <FormControl>
                     <Input
-                      placeholder="Ex: 12 quai des Pecheurs, 75001 Paris"
+                      placeholder="Ex: 12 quai des Pêcheurs, 75001 Paris"
                       {...field}
                     />
                   </FormControl>
