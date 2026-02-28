@@ -3,16 +3,30 @@ import WebSocket from "ws";
 const AIS_API_KEY = "2be1c5db740b0c94f6db08696ed8cf6c1e748bec";
 const WS_URL = "wss://stream.aisstream.io/v0/stream";
 
-// Chaque zone = 1 connexion WebSocket parallele
-const ZONES = [
-  { name: "Seine", boxes: [[[48.3, 0.8], [49.5, 3.5]]] },
-  { name: "Nord", boxes: [[[49.8, 2.0], [50.8, 3.8]]] },
-  { name: "Rhone-Saone", boxes: [[[43.7, 4.2], [46.8, 5.2]]] },
-  { name: "Rhin", boxes: [[[47.5, 7.2], [49.0, 8.2]]] },
-  { name: "Moselle", boxes: [[[48.8, 5.8], [49.5, 6.5]]] },
-  { name: "Oise-Aisne", boxes: [[[49.0, 2.4], [49.7, 3.8]]] },
-  { name: "Marne", boxes: [[[48.7, 2.8], [49.1, 4.5]]] },
-  { name: "Yonne-Bourgogne", boxes: [[[47.3, 2.8], [48.3, 4.0]]] },
+// 2 connexions au lieu de 8 pour eviter le rate-limiting AISStream
+// Connexion 1 : IDF (prioritaire, se connecte immediatement)
+// Connexion 2 : Autres zones (se connecte apres 2s)
+const CONNECTIONS = [
+  {
+    name: "IDF",
+    delay: 0,
+    boxes: [
+      [[48.3, 0.8], [49.5, 3.5]],   // Seine (Paris → Rouen)
+      [[49.0, 2.4], [49.7, 3.8]],   // Oise-Aisne (Compiegne-Creil)
+      [[48.7, 2.8], [49.1, 4.5]],   // Marne (Meaux-Chalons)
+      [[47.3, 2.8], [48.3, 4.0]],   // Yonne-Bourgogne
+    ],
+  },
+  {
+    name: "Autres",
+    delay: 2000,
+    boxes: [
+      [[49.8, 2.0], [50.8, 3.8]],   // Nord (Dunkerque-Lille)
+      [[43.7, 4.2], [46.8, 5.2]],   // Rhone-Saone (Lyon-Arles)
+      [[47.5, 7.2], [49.0, 8.2]],   // Rhin (Strasbourg-Mulhouse)
+      [[48.8, 5.8], [49.5, 6.5]],   // Moselle (Metz-Thionville)
+    ],
+  },
 ];
 
 const COASTAL_EXCLUSIONS = [
@@ -47,13 +61,17 @@ class AISManager {
   private started = false;
   private reconnectTimers: ReturnType<typeof setTimeout>[] = [];
 
-  /** Start all zone connections in parallel */
+  /** Start connections: IDF immediately, others after delay */
   start() {
     if (this.started) return;
     this.started = true;
-    console.log(`[AIS] Starting ${ZONES.length} parallel zone connections...`);
-    for (const zone of ZONES) {
-      this.connectZone(zone.name, zone.boxes);
+    console.log(`[AIS] Starting ${CONNECTIONS.length} connections (IDF prioritaire)...`);
+    for (const conn of CONNECTIONS) {
+      if (conn.delay > 0) {
+        setTimeout(() => this.connectZone(conn.name, conn.boxes), conn.delay);
+      } else {
+        this.connectZone(conn.name, conn.boxes);
+      }
     }
   }
 
@@ -89,7 +107,7 @@ class AISManager {
     }
 
     ws.on("open", () => {
-      console.log(`[AIS][${name}] Connected`);
+      console.log(`[AIS][${name}] Connected (${boxes.length} zones)`);
       this.connections.push(ws);
       ws.send(
         JSON.stringify({
@@ -151,9 +169,9 @@ class AISManager {
 
   private scheduleReconnect(name: string, boxes: number[][][]) {
     const timer = setTimeout(() => {
-      console.log(`[AIS][${name}] Reconnecting...`);
+      console.log(`[AIS][${name}] Reconnecting... (${boxes.length} zones)`);
       this.connectZone(name, boxes);
-    }, 3000);
+    }, 5000);
     this.reconnectTimers.push(timer);
   }
 

@@ -64,8 +64,8 @@ function CarteMap({
 
   return (
     <MapContainer
-      center={[48.0, 3.0]}
-      zoom={7}
+      center={[48.85, 2.6]}
+      zoom={8}
       className="h-full w-full"
       style={{ height: "100%", width: "100%" }}
     >
