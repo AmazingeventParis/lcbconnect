@@ -109,6 +109,7 @@ export function ChatView({
   const [mentionIndex, setMentionIndex] = useState(0);
   const [mentionStart, setMentionStart] = useState(0);
   const mentionRef = useRef<HTMLDivElement>(null);
+  const [mentionedUsers, setMentionedUsers] = useState<Map<string, string>>(new Map());
 
   // Image attachment state
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -365,11 +366,15 @@ export function ChatView({
 
   // Send message
   const handleSend = async () => {
-    const content = inputValue.trim();
-    if ((!content && !imageFile) || sending) return;
+    const rawContent = inputValue.trim();
+    if ((!rawContent && !imageFile) || sending) return;
+
+    // Convert @Name to @[Name](id) before sending
+    const content = rawContent ? buildMentionContent(rawContent) : "";
 
     setSending(true);
     setInputValue("");
+    setMentionedUsers(new Map());
 
     try {
       let attachments: string[] = [];
@@ -424,7 +429,7 @@ export function ChatView({
     } catch (err) {
       console.error(err);
       toast.error("Erreur lors de l'envoi du message");
-      setInputValue(content); // Restore content on error
+      setInputValue(rawContent); // Restore content on error
     } finally {
       setSending(false);
       inputRef.current?.focus();
@@ -455,16 +460,17 @@ export function ChatView({
     }
   }
 
-  // Insert mention
+  // Insert mention — show only @Name in textarea, store mapping for send
   function insertMention(member: MemberSuggestion) {
     const before = inputValue.slice(0, mentionStart);
     const after = inputValue.slice(
       inputRef.current?.selectionStart ?? mentionStart
     );
-    const mentionText = `@[${member.full_name}](${member.id}) `;
+    const mentionText = `@${member.full_name} `;
     const newValue = before + mentionText + after;
     setInputValue(newValue);
     setMentionQuery(null);
+    setMentionedUsers((prev) => new Map(prev).set(member.full_name, member.id));
 
     // Focus and set cursor position after the mention
     setTimeout(() => {
@@ -474,6 +480,19 @@ export function ChatView({
         inputRef.current.setSelectionRange(pos, pos);
       }
     }, 0);
+  }
+
+  // Reconstruct content with @[Name](id) format for storage
+  function buildMentionContent(content: string): string {
+    let result = content;
+    // Sort by name length descending to avoid partial replacements
+    const entries = [...mentionedUsers.entries()].sort(
+      (a, b) => b[0].length - a[0].length
+    );
+    for (const [name, id] of entries) {
+      result = result.replaceAll(`@${name}`, `@[${name}](${id})`);
+    }
+    return result;
   }
 
   // Handle Enter key
