@@ -3,7 +3,7 @@
 import { useRef, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { toast } from "sonner";
-import { Camera, Loader2, Users, Shield, Landmark, MessageSquare } from "lucide-react";
+import { Camera, Loader2, UsersRound, Shield, Landmark, MessageSquare } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -36,7 +36,7 @@ function getGroupIcon(groupType: string | null) {
     case "channel_ca":
       return <Shield className="size-6" />;
     default:
-      return <Users className="size-6" />;
+      return <UsersRound className="size-6" />;
   }
 }
 

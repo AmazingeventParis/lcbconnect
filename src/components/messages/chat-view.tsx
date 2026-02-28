@@ -12,7 +12,7 @@ import {
   ArrowLeft,
   Send,
   Loader2,
-  Users,
+  UsersRound,
   Shield,
   Landmark,
   MessageSquare,
@@ -57,7 +57,7 @@ function getGroupIcon(groupType: string | null) {
     case "channel_ca":
       return <Shield className="size-4" />;
     default:
-      return <Users className="size-4" />;
+      return <UsersRound className="size-4" />;
   }
 }
 

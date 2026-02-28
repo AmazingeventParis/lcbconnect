@@ -7,7 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Search, Users, Shield, Landmark, MessageSquare } from "lucide-react";
+import { Search, UsersRound, Shield, Landmark, MessageSquare } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { Profile, Conversation, Message } from "@/lib/supabase/types";
 
@@ -65,7 +65,7 @@ function getGroupIcon(groupType: string | null) {
     case "channel_ca":
       return <Shield className="size-3.5" />;
     default:
-      return <Users className="size-3.5" />;
+      return <UsersRound className="size-3.5" />;
   }
 }
 
