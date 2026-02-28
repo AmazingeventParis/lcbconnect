@@ -18,6 +18,7 @@ import {
 import { toast } from "sonner";
 
 import { createClient } from "@/lib/supabase/client";
+import { sendNotification } from "@/lib/notify";
 import { cn } from "@/lib/utils";
 import { POST_TYPES, ROLES } from "@/lib/constants";
 import type { PostWithAuthor } from "@/lib/types";
@@ -114,6 +115,13 @@ export function PostCard({ post, currentUserId, onLikeChange }: PostCardProps) {
             .from("lcb_posts")
             .update({ likes_count: newCount })
             .eq("id", post.id);
+
+          sendNotification({
+            type: "like",
+            actorId: currentUserId,
+            targetType: "post",
+            targetId: post.id,
+          });
         }
       } catch {
         // Revert optimistic update

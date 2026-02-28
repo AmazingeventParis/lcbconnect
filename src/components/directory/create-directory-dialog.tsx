@@ -7,6 +7,7 @@ import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 import { createClient } from "@/lib/supabase/client";
+import { sendNotification } from "@/lib/notify";
 import type { Profile } from "@/lib/supabase/types";
 import { directorySchema, type DirectoryValues } from "@/lib/validators";
 
@@ -72,7 +73,7 @@ export function CreateDirectoryDialog({
     startTransition(async () => {
       try {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const { error } = await (supabase as any)
+        const { data: created, error } = await (supabase as any)
           .from("lcb_directory")
           .insert({
             created_by: profile.id,
@@ -86,11 +87,22 @@ export function CreateDirectoryDialog({
             is_approved: false,
             rating_avg: 0,
             rating_count: 0,
-          });
+          })
+          .select("id")
+          .single();
 
         if (error) {
           toast.error("Erreur lors de la création de l'adresse.");
           return;
+        }
+
+        if (created) {
+          sendNotification({
+            type: "directory",
+            actorId: profile.id,
+            targetType: "directory",
+            targetId: created.id,
+          });
         }
 
         toast.success(

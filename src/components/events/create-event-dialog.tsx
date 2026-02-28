@@ -7,6 +7,7 @@ import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 import { createClient } from "@/lib/supabase/client";
+import { sendNotification } from "@/lib/notify";
 import type { Profile } from "@/lib/supabase/types";
 import { eventSchema, type EventValues } from "@/lib/validators";
 
@@ -65,7 +66,7 @@ export function CreateEventDialog({
         const maxP = maxParticipants ? parseInt(maxParticipants, 10) : null;
 
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const { error } = await (supabase as any)
+        const { data: created, error } = await (supabase as any)
           .from("lcb_events")
           .insert({
             created_by: profile.id,
@@ -76,11 +77,22 @@ export function CreateEventDialog({
             end_date: new Date(values.end_date).toISOString(),
             max_participants: maxP,
             registrations_count: 0,
-          });
+          })
+          .select("id")
+          .single();
 
         if (error) {
           toast.error("Erreur lors de la création de l'événement.");
           return;
+        }
+
+        if (created) {
+          sendNotification({
+            type: "event",
+            actorId: profile.id,
+            targetType: "event",
+            targetId: created.id,
+          });
         }
 
         toast.success("Événement créé avec succès !");

@@ -14,6 +14,7 @@ import {
 import { toast } from "sonner";
 
 import { createClient } from "@/lib/supabase/client";
+import { sendNotification } from "@/lib/notify";
 import { commentSchema, type CommentValues } from "@/lib/validators";
 import { ROLES } from "@/lib/constants";
 import { cn } from "@/lib/utils";
@@ -121,6 +122,14 @@ function CommentItem({
             .update({ comments_count: post.comments_count + 1 })
             .eq("id", postId);
         }
+
+        sendNotification({
+          type: "reply",
+          actorId: currentUser.id,
+          targetType: "comment",
+          targetId: comment.id,
+          data: { postId },
+        });
 
         replyForm.reset();
         setShowReplyForm(false);
@@ -331,6 +340,13 @@ export function CommentsSection({ postId, currentUser }: CommentsSectionProps) {
             .update({ comments_count: post.comments_count + 1 })
             .eq("id", postId);
         }
+
+        sendNotification({
+          type: "comment",
+          actorId: currentUser.id,
+          targetType: "post",
+          targetId: postId,
+        });
 
         form.reset();
         fetchComments();

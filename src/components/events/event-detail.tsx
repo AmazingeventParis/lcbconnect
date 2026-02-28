@@ -18,6 +18,7 @@ import {
 import { toast } from "sonner";
 
 import { createClient } from "@/lib/supabase/client";
+import { sendNotification } from "@/lib/notify";
 import type { Profile, Event } from "@/lib/supabase/types";
 import { hasMinRole } from "@/lib/constants";
 
@@ -189,6 +190,13 @@ export function EventDetail({ eventId, profile }: EventDetailProps) {
             registrations_count: event.registrations_count + 1,
           })
           .eq("id", event.id);
+
+        sendNotification({
+          type: "event",
+          actorId: profile.id,
+          targetType: "event_registration",
+          targetId: event.id,
+        });
 
         toast.success("Inscription confirmée !");
         fetchEvent();

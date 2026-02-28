@@ -7,6 +7,7 @@ import { FileUp, Loader2, X } from "lucide-react";
 import { toast } from "sonner";
 
 import { createClient } from "@/lib/supabase/client";
+import { sendNotification } from "@/lib/notify";
 import type { Profile } from "@/lib/supabase/types";
 import { DOCUMENT_CATEGORIES, ROLES } from "@/lib/constants";
 import { documentSchema, type DocumentValues } from "@/lib/validators";
@@ -132,7 +133,7 @@ export function UploadDocumentDialog({
 
         // 3. Inserer le document dans la base de donnees
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const { error: insertError } = await (supabase as any)
+        const { data: created, error: insertError } = await (supabase as any)
           .from("lcb_documents")
           .insert({
             uploaded_by: profile.id,
@@ -143,12 +144,23 @@ export function UploadDocumentDialog({
             file_url: publicUrl,
             file_size: selectedFile.size,
             min_role: values.min_role,
-          });
+          })
+          .select("id")
+          .single();
 
         if (insertError) {
           toast.error("Erreur lors de l'enregistrement du document.");
           setUploading(false);
           return;
+        }
+
+        if (created) {
+          sendNotification({
+            type: "document",
+            actorId: profile.id,
+            targetType: "document",
+            targetId: created.id,
+          });
         }
 
         toast.success("Document ajouté avec succès !");

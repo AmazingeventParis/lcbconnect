@@ -12,6 +12,8 @@ import {
   AlertTriangle,
   Mail,
   Shield,
+  FileText,
+  BookOpen,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/client";
@@ -60,6 +62,16 @@ const TYPE_CONFIG: Record<
     icon: Shield,
     color: "text-slate-600",
     bg: "bg-slate-100",
+  },
+  document: {
+    icon: FileText,
+    color: "text-teal-500",
+    bg: "bg-teal-50",
+  },
+  directory: {
+    icon: BookOpen,
+    color: "text-cyan-600",
+    bg: "bg-cyan-50",
   },
 };
 

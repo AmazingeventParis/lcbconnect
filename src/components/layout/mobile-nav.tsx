@@ -47,7 +47,7 @@ interface MobileNavProps {
 
 export function MobileNav({ profile: _profile }: MobileNavProps) {
   const pathname = usePathname();
-  const { unreadCount } = useNotifications(_profile.id);
+  const { unreadCount, sectionCounts } = useNotifications(_profile.id);
   const [moreOpen, setMoreOpen] = useState(false);
 
   const showAdmin = hasMinRole(_profile.role, "ca");
@@ -176,6 +176,21 @@ export function MobileNav({ profile: _profile }: MobileNavProps) {
                 {item.href === "/notifications" && unreadCount > 0 && (
                   <span className="absolute -top-1 -right-1.5 flex items-center justify-center size-3.5 rounded-full bg-[#D4A853] text-[8px] font-bold text-white">
                     {unreadCount > 9 ? "9+" : unreadCount}
+                  </span>
+                )}
+                {item.href === "/feed" && sectionCounts.feed > 0 && (
+                  <span className="absolute -top-1 -right-1.5 flex items-center justify-center size-3.5 rounded-full bg-[#D4A853] text-[8px] font-bold text-white">
+                    {sectionCounts.feed > 9 ? "9+" : sectionCounts.feed}
+                  </span>
+                )}
+                {item.href === "/events" && sectionCounts.events > 0 && (
+                  <span className="absolute -top-1 -right-1.5 flex items-center justify-center size-3.5 rounded-full bg-[#D4A853] text-[8px] font-bold text-white">
+                    {sectionCounts.events > 9 ? "9+" : sectionCounts.events}
+                  </span>
+                )}
+                {item.href === "/messages" && sectionCounts.messages > 0 && (
+                  <span className="absolute -top-1 -right-1.5 flex items-center justify-center size-3.5 rounded-full bg-[#D4A853] text-[8px] font-bold text-white">
+                    {sectionCounts.messages > 9 ? "9+" : sectionCounts.messages}
                   </span>
                 )}
               </span>

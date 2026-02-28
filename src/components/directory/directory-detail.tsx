@@ -21,6 +21,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 
 import { createClient } from "@/lib/supabase/client";
+import { sendNotification } from "@/lib/notify";
 import type {
   Profile,
   DirectoryEntry,
@@ -270,6 +271,13 @@ export function DirectoryDetail({ entryId, profile }: DirectoryDetailProps) {
           updated_at: new Date().toISOString(),
         })
         .eq("id", entry.id);
+
+      sendNotification({
+        type: "directory",
+        actorId: profile.id,
+        targetType: "directory_review",
+        targetId: entry.id,
+      });
 
       toast.success("Avis envoyé !");
       form.reset();

@@ -8,6 +8,7 @@ import { MapPin, Clock, Users, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 import { createClient } from "@/lib/supabase/client";
+import { sendNotification } from "@/lib/notify";
 import type { Event, Profile } from "@/lib/supabase/types";
 
 import { Button } from "@/components/ui/button";
@@ -101,6 +102,13 @@ export function EventCard({
             registrations_count: event.registrations_count + 1,
           })
           .eq("id", event.id);
+
+        sendNotification({
+          type: "event",
+          actorId: profile.id,
+          targetType: "event_registration",
+          targetId: event.id,
+        });
 
         toast.success("Inscription confirmée !");
         onRegistrationChange();

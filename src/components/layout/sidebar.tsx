@@ -17,10 +17,12 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { hasMinRole } from "@/lib/constants";
+import { useNotifications } from "@/lib/hooks/use-notifications";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import type { Profile } from "@/lib/supabase/types";
 import type { Role } from "@/lib/constants";
+import type { SectionCounts } from "@/lib/hooks/use-notifications";
 
 const ROLE_LABELS: Record<Role, string> = {
   membre: "Membre",
@@ -42,6 +44,15 @@ const ADMIN_ITEMS = [
   { href: "/admin", label: "Administration", icon: Settings },
 ];
 
+const HREF_TO_SECTION: Record<string, keyof SectionCounts> = {
+  "/feed": "feed",
+  "/messages": "messages",
+  "/events": "events",
+  "/documents": "documents",
+  "/directory": "directory",
+  "/admin": "admin",
+};
+
 function getInitials(name: string): string {
   return name
     .split(" ")
@@ -57,6 +68,7 @@ interface SidebarProps {
 
 export function Sidebar({ profile }: SidebarProps) {
   const pathname = usePathname();
+  const { sectionCounts } = useNotifications(profile.id);
 
   const isActive = (href: string) => {
     if (href === "/feed") {
@@ -83,6 +95,8 @@ export function Sidebar({ profile }: SidebarProps) {
           {NAV_ITEMS.map((item) => {
             const Icon = item.icon;
             const active = isActive(item.href);
+            const section = HREF_TO_SECTION[item.href];
+            const count = section ? sectionCounts[section] : 0;
             return (
               <Link
                 key={item.href}
@@ -101,6 +115,11 @@ export function Sidebar({ profile }: SidebarProps) {
                   )}
                 />
                 {item.label}
+                {count > 0 && (
+                  <span className="ml-auto flex items-center justify-center min-w-5 h-5 rounded-full bg-[#D4A853] text-[10px] font-bold text-white px-1">
+                    {count > 99 ? "99+" : count}
+                  </span>
+                )}
               </Link>
             );
           })}
@@ -118,6 +137,8 @@ export function Sidebar({ profile }: SidebarProps) {
               {ADMIN_ITEMS.map((item) => {
                 const Icon = item.icon;
                 const active = isActive(item.href);
+                const section = HREF_TO_SECTION[item.href];
+                const count = section ? sectionCounts[section] : 0;
                 return (
                   <Link
                     key={item.href}
@@ -136,6 +157,11 @@ export function Sidebar({ profile }: SidebarProps) {
                       )}
                     />
                     {item.label}
+                    {count > 0 && (
+                      <span className="ml-auto flex items-center justify-center min-w-5 h-5 rounded-full bg-[#D4A853] text-[10px] font-bold text-white px-1">
+                        {count > 99 ? "99+" : count}
+                      </span>
+                    )}
                   </Link>
                 );
               })}
@@ -173,9 +199,14 @@ export function Sidebar({ profile }: SidebarProps) {
           </div>
           <Link
             href="/notifications"
-            className="shrink-0 flex items-center justify-center size-9 rounded-lg text-slate-400 hover:bg-white/10 hover:text-white transition-colors"
+            className="shrink-0 relative flex items-center justify-center size-9 rounded-lg text-slate-400 hover:bg-white/10 hover:text-white transition-colors"
           >
             <Bell className="size-5" />
+            {sectionCounts.total > 0 && (
+              <span className="absolute -top-0.5 -right-0.5 flex items-center justify-center size-4 rounded-full bg-[#D4A853] text-[8px] font-bold text-white">
+                {sectionCounts.total > 9 ? "9+" : sectionCounts.total}
+              </span>
+            )}
           </Link>
         </div>
       </div>

@@ -73,6 +73,8 @@ export const NOTIFICATION_TYPES = {
   complaint: { label: "Plainte" },
   message: { label: "Message" },
   admin: { label: "Administration" },
+  document: { label: "Document" },
+  directory: { label: "Annuaire" },
 } as const;
 
 export type NotificationType = keyof typeof NOTIFICATION_TYPES;

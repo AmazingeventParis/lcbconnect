@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { sendNotification } from "@/lib/notify";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -258,6 +259,13 @@ export function ChatView({
         .from("lcb_conversations")
         .update({ updated_at: new Date().toISOString() })
         .eq("id", conversationId);
+
+      sendNotification({
+        type: "message",
+        actorId: currentUserId,
+        targetType: "conversation",
+        targetId: conversationId,
+      });
 
       setTimeout(() => scrollToBottom(), 100);
     } catch (err) {
