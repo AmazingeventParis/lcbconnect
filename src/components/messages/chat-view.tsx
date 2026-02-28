@@ -124,6 +124,12 @@ export function ChatView({
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Typing indicator state
+  const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
+  const [typingUsers, setTypingUsers] = useState<Map<string, string>>(new Map());
+  const typingTimeoutsRef = useRef<Map<string, NodeJS.Timeout>>(new Map());
+  const lastTypingEmitRef = useRef<number>(0);
+
   const scrollToBottom = useCallback((behavior: ScrollBehavior = "smooth") => {
     messagesEndRef.current?.scrollIntoView({ behavior });
   }, []);
@@ -248,7 +254,7 @@ export function ChatView({
     };
   }, [supabase, conversationId, currentUserId, scrollToBottom]);
 
-  // Realtime subscription for new messages
+  // Realtime subscription for new messages + typing broadcast
   useEffect(() => {
     const channel = supabase
       .channel(`messages-${conversationId}`)
@@ -295,6 +301,14 @@ export function ChatView({
             }
           }
 
+          // Remove typing indicator when a message arrives from that user
+          setTypingUsers((prev) => {
+            if (!prev.has(newMsg.sender_id)) return prev;
+            const next = new Map(prev);
+            next.delete(newMsg.sender_id);
+            return next;
+          });
+
           // Update last_read_at
           await (supabase as any)
             .from("lcb_conversation_members")
@@ -305,12 +319,57 @@ export function ChatView({
           setTimeout(() => scrollToBottom(), 100);
         }
       )
+      .on("broadcast", { event: "typing" }, (payload: any) => {
+        const { userId, userName, isTyping } = payload.payload;
+        if (userId === currentUserId) return;
+
+        if (!isTyping) {
+          // Remove user from typing
+          setTypingUsers((prev) => {
+            if (!prev.has(userId)) return prev;
+            const next = new Map(prev);
+            next.delete(userId);
+            return next;
+          });
+          const existing = typingTimeoutsRef.current.get(userId);
+          if (existing) clearTimeout(existing);
+          typingTimeoutsRef.current.delete(userId);
+          return;
+        }
+
+        // Add user to typing
+        setTypingUsers((prev) => new Map(prev).set(userId, userName));
+
+        // Reset auto-expiry timeout (3s)
+        const existing = typingTimeoutsRef.current.get(userId);
+        if (existing) clearTimeout(existing);
+        typingTimeoutsRef.current.set(
+          userId,
+          setTimeout(() => {
+            setTypingUsers((prev) => {
+              const next = new Map(prev);
+              next.delete(userId);
+              return next;
+            });
+            typingTimeoutsRef.current.delete(userId);
+          }, 3000)
+        );
+      })
       .subscribe();
+
+    channelRef.current = channel;
 
     return () => {
       supabase.removeChannel(channel);
+      channelRef.current = null;
+      // Clear all typing timeouts
+      typingTimeoutsRef.current.forEach((t) => clearTimeout(t));
+      typingTimeoutsRef.current.clear();
     };
   }, [supabase, conversationId, currentUserId, scrollToBottom]);
+
+  // Current user's display name (for typing indicator broadcast)
+  const currentUserName = allMembers.find((m) => m.id === currentUserId)?.full_name ?? "";
 
   // Extract mentioned user IDs from message content (format: @[Name](userId))
   function extractMentionedUserIds(content: string): string[] {
@@ -394,6 +453,14 @@ export function ChatView({
     setInputValue("");
     setMentionedUsers(new Map());
 
+    // Stop typing indicator
+    channelRef.current?.send({
+      type: "broadcast",
+      event: "typing",
+      payload: { userId: currentUserId, userName: currentUserName, isTyping: false },
+    });
+    lastTypingEmitRef.current = 0;
+
     try {
       let attachments: string[] = [];
 
@@ -454,7 +521,7 @@ export function ChatView({
     }
   };
 
-  // Handle text input change with mention detection
+  // Handle text input change with mention detection + typing broadcast
   function handleInputChange(e: React.ChangeEvent<HTMLTextAreaElement>) {
     const value = e.target.value;
     setInputValue(value);
@@ -462,6 +529,29 @@ export function ChatView({
     // Auto-resize textarea
     e.target.style.height = "auto";
     e.target.style.height = `${Math.min(e.target.scrollHeight, 120)}px`;
+
+    // Emit typing broadcast (throttled: max once per second)
+    if (channelRef.current && currentUserName) {
+      const now = Date.now();
+      if (value.trim()) {
+        if (now - lastTypingEmitRef.current > 1000) {
+          lastTypingEmitRef.current = now;
+          channelRef.current.send({
+            type: "broadcast",
+            event: "typing",
+            payload: { userId: currentUserId, userName: currentUserName, isTyping: true },
+          });
+        }
+      } else {
+        // Field emptied → stop typing
+        channelRef.current.send({
+          type: "broadcast",
+          event: "typing",
+          payload: { userId: currentUserId, userName: currentUserName, isTyping: false },
+        });
+        lastTypingEmitRef.current = 0;
+      }
+    }
 
     // Detect @mention
     const cursorPos = e.target.selectionStart;
@@ -694,8 +784,26 @@ export function ChatView({
         )}
       </div>
 
+      {/* Typing indicator */}
+      {typingUsers.size > 0 && (
+        <div className="px-4 py-1.5 bg-white border-t flex items-center gap-2 shrink-0">
+          <span className="flex gap-0.5">
+            <span className="size-1.5 rounded-full bg-muted-foreground animate-bounce [animation-delay:0ms]" />
+            <span className="size-1.5 rounded-full bg-muted-foreground animate-bounce [animation-delay:150ms]" />
+            <span className="size-1.5 rounded-full bg-muted-foreground animate-bounce [animation-delay:300ms]" />
+          </span>
+          <span className="text-xs text-muted-foreground italic">
+            {(() => {
+              const names = [...typingUsers.values()];
+              if (names.length === 1) return `${names[0]} écrit...`;
+              return `${names.join(", ")} écrivent...`;
+            })()}
+          </span>
+        </div>
+      )}
+
       {/* Input area */}
-      <div className="border-t bg-white p-3 shrink-0">
+      <div className={cn("bg-white p-3 shrink-0", typingUsers.size === 0 && "border-t")}>
         {/* Image preview */}
         {imagePreview && (
           <div className="mb-2 relative inline-block">
