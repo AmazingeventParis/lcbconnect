@@ -110,20 +110,18 @@ export function FeedClient({ profile, initialPosts }: FeedClientProps) {
       </div>
 
       {/* Filter tabs */}
-      <div className="overflow-x-auto -mx-4 px-4">
-        <Tabs
-          value={filter}
-          onValueChange={(v) => setFilter(v as PostType | "all")}
-        >
-          <TabsList className="w-full" variant="line">
-            {FILTER_TABS.map((tab) => (
-              <TabsTrigger key={tab.value} value={tab.value}>
-                {tab.label}
-              </TabsTrigger>
-            ))}
-          </TabsList>
-        </Tabs>
-      </div>
+      <Tabs
+        value={filter}
+        onValueChange={(v) => setFilter(v as PostType | "all")}
+      >
+        <TabsList className="w-full" variant="line">
+          {FILTER_TABS.map((tab) => (
+            <TabsTrigger key={tab.value} value={tab.value}>
+              {tab.label}
+            </TabsTrigger>
+          ))}
+        </TabsList>
+      </Tabs>
 
       {/* Posts list */}
       <div className="space-y-4">
