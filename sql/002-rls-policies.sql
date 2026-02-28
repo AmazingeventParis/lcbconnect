@@ -175,6 +175,10 @@ CREATE POLICY "reports_update_ca_bureau"
     ON lcb_reports FOR UPDATE
     USING (lcb_is_ca_or_bureau(auth.uid()));
 
+CREATE POLICY "reports_delete_ca_bureau"
+    ON lcb_reports FOR DELETE
+    USING (lcb_is_ca_or_bureau(auth.uid()));
+
 -- ============================================================================
 -- 6. lcb_services policies
 -- ============================================================================

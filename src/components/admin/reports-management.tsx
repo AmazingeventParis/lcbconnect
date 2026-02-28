@@ -216,6 +216,26 @@ export function ReportsManagement({ profile }: ReportsManagementProps) {
     setActionLoading(null);
   }
 
+  async function handleDeleteReport(reportId: string) {
+    if (!confirm("Supprimer ce signalement ?")) return;
+
+    setActionLoading(reportId);
+
+    const { error } = await (supabase as any)
+      .from("lcb_reports")
+      .delete()
+      .eq("id", reportId);
+
+    if (error) {
+      toast.error("Erreur lors de la suppression du signalement.");
+    } else {
+      toast.success("Signalement supprimé.");
+      fetchReports();
+    }
+
+    setActionLoading(null);
+  }
+
   // Stats
   const stats = useMemo(() => {
     return {
@@ -526,6 +546,18 @@ export function ReportsManagement({ profile }: ReportsManagementProps) {
                                     </>
                                   )}
                                 </>
+                              )}
+
+                              {report.status !== "pending" && (
+                                <Button
+                                  variant="outline"
+                                  size="xs"
+                                  className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                  onClick={() => handleDeleteReport(report.id)}
+                                  title="Supprimer le signalement"
+                                >
+                                  <Trash2 className="size-3.5" />
+                                </Button>
                               )}
                             </div>
                           )}
