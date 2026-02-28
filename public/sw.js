@@ -1,17 +1,15 @@
-// LCBconnect Service Worker v1.0.0
-const CACHE_VERSION = "lcbconnect-v1";
+// LCBconnect Service Worker v1.1.0
+const CACHE_VERSION = "lcbconnect-v2";
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const DYNAMIC_CACHE = `${CACHE_VERSION}-dynamic`;
 const API_CACHE = `${CACHE_VERSION}-api`;
 
 const OFFLINE_URL = "/offline";
 
-// Static assets to pre-cache on install
+// Only pre-cache truly static assets (NOT auth-dependent pages like /)
 const PRECACHE_ASSETS = [
-  "/",
   "/offline",
   "/manifest.json",
-  "/icons/icon.svg",
 ];
 
 // Install event: pre-cache essential assets
@@ -66,9 +64,10 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // Page navigations: stale-while-revalidate with offline fallback
+  // Page navigations: network-first with offline fallback
+  // (pages depend on auth state, so always hit the network first)
   if (request.mode === "navigate") {
-    event.respondWith(staleWhileRevalidateWithOffline(request));
+    event.respondWith(networkFirstWithOffline(request));
     return;
   }
 
@@ -163,25 +162,16 @@ async function cacheFirstStrategy(request, cacheName) {
   }
 }
 
-// Stale-while-revalidate with offline fallback for navigations
-async function staleWhileRevalidateWithOffline(request) {
-  const cachedResponse = await caches.match(request);
-
-  const fetchPromise = fetch(request)
-    .then((networkResponse) => {
-      if (networkResponse.ok) {
-        const cache = caches.open(DYNAMIC_CACHE);
-        cache.then((c) => c.put(request, networkResponse.clone()));
-      }
-      return networkResponse;
-    })
-    .catch(async () => {
-      // If network fails and no cache, serve offline page
-      const offlineResponse = await caches.match(OFFLINE_URL);
-      return offlineResponse || new Response("Offline", { status: 503 });
-    });
-
-  return cachedResponse || fetchPromise;
+// Network-first with offline fallback for page navigations
+async function networkFirstWithOffline(request) {
+  try {
+    const networkResponse = await fetch(request);
+    return networkResponse;
+  } catch {
+    // Network failed — serve offline page
+    const offlineResponse = await caches.match(OFFLINE_URL);
+    return offlineResponse || new Response("Offline", { status: 503 });
+  }
 }
 
 // --- Helpers ---
