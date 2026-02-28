@@ -7,9 +7,7 @@ import { fr } from "date-fns/locale";
 import {
   ArrowUpDown,
   CheckCircle,
-  ExternalLink,
   Flag,
-  XCircle,
   Loader2,
   Eye,
   EyeOff,
@@ -53,7 +51,7 @@ interface ReportsManagementProps {
 
 const STATUS_LABELS: Record<string, string> = {
   pending: "En attente",
-  reviewed: "Examiné",
+  reviewed: "Autorisé",
   dismissed: "Classé",
 };
 
@@ -162,7 +160,7 @@ export function ReportsManagement({ profile }: ReportsManagementProps) {
     } else {
       toast.success(
         newStatus === "reviewed"
-          ? "Signalement marqué comme examiné."
+          ? "Publication autorisée."
           : "Signalement classé sans suite."
       );
       fetchReports();
@@ -312,7 +310,7 @@ export function ReportsManagement({ profile }: ReportsManagementProps) {
         <Card className="gap-0 py-0">
           <CardHeader className="p-4 pb-2">
             <CardTitle className="text-xs font-medium text-muted-foreground">
-              Examinés
+              Autorisés
             </CardTitle>
           </CardHeader>
           <CardContent className="p-4 pt-0">
@@ -340,7 +338,7 @@ export function ReportsManagement({ profile }: ReportsManagementProps) {
           <SelectContent>
             <SelectItem value="tous">Tous les statuts</SelectItem>
             <SelectItem value="pending">En attente</SelectItem>
-            <SelectItem value="reviewed">Examiné</SelectItem>
+            <SelectItem value="reviewed">Autorisé</SelectItem>
             <SelectItem value="dismissed">Classé</SelectItem>
           </SelectContent>
         </Select>
@@ -465,11 +463,13 @@ export function ReportsManagement({ profile }: ReportsManagementProps) {
                               {contentLink && (
                                 <Link href={contentLink}>
                                   <Button
-                                    variant="ghost"
-                                    size="icon-xs"
-                                    title="Voir le contenu"
+                                    variant="outline"
+                                    size="xs"
+                                    className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                                    title="Voir la publication"
                                   >
-                                    <ExternalLink className="h-3.5 w-3.5" />
+                                    <Eye className="size-3.5" />
+                                    Voir
                                   </Button>
                                 </Link>
                               )}
@@ -486,25 +486,10 @@ export function ReportsManagement({ profile }: ReportsManagementProps) {
                                         "reviewed"
                                       )
                                     }
-                                    title="Marquer comme examiné"
+                                    title="Autoriser la publication"
                                   >
                                     <CheckCircle className="size-3.5" />
-                                    Examiner
-                                  </Button>
-                                  <Button
-                                    variant="outline"
-                                    size="xs"
-                                    className="text-slate-600 hover:text-slate-700 hover:bg-slate-50"
-                                    onClick={() =>
-                                      handleUpdateStatus(
-                                        report.id,
-                                        "dismissed"
-                                      )
-                                    }
-                                    title="Classer sans suite"
-                                  >
-                                    <XCircle className="size-3.5" />
-                                    Classer
+                                    Autoriser
                                   </Button>
                                   {report.post_id && (
                                     <>
@@ -541,39 +526,6 @@ export function ReportsManagement({ profile }: ReportsManagementProps) {
                                     </>
                                   )}
                                 </>
-                              )}
-
-                              {report.status === "dismissed" && (
-                                <Button
-                                  variant="outline"
-                                  size="xs"
-                                  className="text-amber-600 hover:text-amber-700 hover:bg-amber-50"
-                                  onClick={() =>
-                                    handleUpdateStatus(report.id, "pending")
-                                  }
-                                  title="Rouvrir"
-                                >
-                                  <Eye className="size-3.5" />
-                                  Rouvrir
-                                </Button>
-                              )}
-
-                              {report.status === "reviewed" && (
-                                <Button
-                                  variant="outline"
-                                  size="xs"
-                                  className="text-slate-600 hover:text-slate-700 hover:bg-slate-50"
-                                  onClick={() =>
-                                    handleUpdateStatus(
-                                      report.id,
-                                      "dismissed"
-                                    )
-                                  }
-                                  title="Classer sans suite"
-                                >
-                                  <XCircle className="size-3.5" />
-                                  Classer
-                                </Button>
                               )}
                             </div>
                           )}

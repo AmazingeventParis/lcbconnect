@@ -277,7 +277,7 @@ export async function POST(request: NextRequest) {
         });
       }
     } else if (type === "report" && targetType === "post") {
-      // Report on post → notify all CA/bureau members
+      // Report on post → notify all CA/bureau members (including self)
       const { data: admins } = await service
         .from("lcb_profiles")
         .select("id")
@@ -286,15 +286,16 @@ export async function POST(request: NextRequest) {
 
       if (admins) {
         for (const admin of admins) {
-          if (admin.id !== actorId) {
-            notifications.push({
-              user_id: admin.id,
-              type: "report",
-              title: `${actorName} a signalé une publication`,
-              body: "",
-              link: "/admin/reports",
-            });
-          }
+          notifications.push({
+            user_id: admin.id,
+            type: "report",
+            title:
+              admin.id === actorId
+                ? "Votre signalement a été enregistré"
+                : `${actorName} a signalé une publication`,
+            body: "",
+            link: "/admin/reports",
+          });
         }
       }
     }
