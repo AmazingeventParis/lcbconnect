@@ -43,7 +43,7 @@ const POST_TYPE_ICONS: Record<string, React.ElementType> = {
 };
 
 const POST_TYPE_COLORS: Record<string, string> = {
-  standard: "bg-blue-100 text-blue-700",
+  standard: "bg-teal-100 text-teal-700",
   service: "bg-amber-100 text-amber-700",
   plainte: "bg-red-100 text-red-700",
   officiel_bureau: "bg-purple-100 text-purple-700",
@@ -255,7 +255,7 @@ export function PostCard({ post, currentUserId, onLikeChange }: PostCardProps) {
           disabled={likeLoading}
         >
           <HeartIcon
-            className={cn("size-4", liked && "fill-current")}
+            className={cn("size-4", liked && "fill-current animate-like-pulse")}
           />
           <span className="text-xs">{likesCount > 0 ? likesCount : ""}</span>
         </Button>

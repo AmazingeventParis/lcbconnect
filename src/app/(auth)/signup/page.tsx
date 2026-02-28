@@ -182,7 +182,7 @@ export default function SignupPage() {
                 </FormItem>
               )}
             />
-            <Button type="submit" className="w-full" disabled={isLoading}>
+            <Button type="submit" className="w-full rounded-full" disabled={isLoading}>
               {isLoading && <Loader2 className="animate-spin" />}
               Créer un compte
             </Button>
@@ -192,7 +192,7 @@ export default function SignupPage() {
       <CardFooter className="justify-center">
         <p className="text-sm text-muted-foreground">
           Déjà un compte ?{" "}
-          <Link href="/login" className="text-blue-600 hover:underline">
+          <Link href="/login" className="text-teal-600 hover:underline">
             Se connecter
           </Link>
         </p>

@@ -73,10 +73,10 @@ export function Header({ profile }: HeaderProps) {
   };
 
   return (
-    <header className="sticky top-0 z-40 flex items-center justify-between h-16 px-4 md:px-6 border-b border-slate-200 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/80">
+    <header className="sticky top-0 z-40 flex items-center justify-between h-16 px-4 md:px-6 shadow-sm bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/80">
       {/* Left: page title */}
       <div className="flex items-center">
-        <h1 className="text-lg font-semibold text-slate-900">
+        <h1 className="text-lg font-semibold text-foreground">
           <span className="hidden md:inline">{pageTitle}</span>
           <span className="md:hidden">LCBconnect</span>
         </h1>
@@ -89,13 +89,13 @@ export function Header({ profile }: HeaderProps) {
           className={cn(
             "relative flex items-center justify-center size-9 rounded-lg transition-colors",
             pathname.startsWith("/notifications")
-              ? "bg-blue-100 text-blue-600"
-              : "text-slate-400 hover:bg-slate-100 hover:text-slate-600"
+              ? "bg-teal-50 text-teal-600"
+              : "text-muted-foreground hover:bg-accent hover:text-foreground"
           )}
         >
           <Bell className="size-5" />
           {unreadCount > 0 && (
-            <span className="absolute -top-0.5 -right-0.5 flex items-center justify-center size-4 rounded-full bg-red-500 text-[10px] font-bold text-white">
+            <span className="absolute -top-0.5 -right-0.5 flex items-center justify-center size-4 rounded-full bg-[#F4845F] text-[10px] font-bold text-white">
               {unreadCount > 9 ? "9+" : unreadCount}
             </span>
           )}
@@ -103,17 +103,17 @@ export function Header({ profile }: HeaderProps) {
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <button className="flex items-center gap-2 rounded-lg p-1.5 hover:bg-slate-100 transition-colors focus:outline-none">
+            <button className="flex items-center gap-2 rounded-lg p-1.5 hover:bg-accent transition-colors focus:outline-none">
               <Avatar size="sm">
                 <AvatarImage
                   src={profile.avatar_url ?? undefined}
                   alt={profile.full_name}
                 />
-                <AvatarFallback className="bg-blue-100 text-blue-700 text-[10px]">
+                <AvatarFallback className="bg-teal-100 text-teal-700 text-[10px]">
                   {getInitials(profile.full_name)}
                 </AvatarFallback>
               </Avatar>
-              <span className="hidden md:inline text-sm font-medium text-slate-700">
+              <span className="hidden md:inline text-sm font-medium text-foreground">
                 {profile.full_name}
               </span>
             </button>

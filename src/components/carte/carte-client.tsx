@@ -219,7 +219,7 @@ export function CarteClient() {
   if (!mounted) {
     return (
       <div className="flex items-center justify-center h-[calc(100vh-4rem)]">
-        <Loader2 className="size-8 animate-spin text-blue-600" />
+        <Loader2 className="size-8 animate-spin text-teal-600" />
       </div>
     );
   }
@@ -229,7 +229,7 @@ export function CarteClient() {
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-slate-200 bg-white">
         <div className="flex items-center gap-2">
-          <Ship className="size-5 text-blue-600" />
+          <Ship className="size-5 text-teal-600" />
           <h1 className="text-lg font-semibold text-slate-900">
             Carte AIS - Navires
           </h1>
@@ -246,8 +246,8 @@ export function CarteClient() {
               </>
             ) : status === "connecting" ? (
               <>
-                <Radio className="size-4 text-blue-500 animate-pulse" />
-                <span className="text-xs text-blue-600">Connexion...</span>
+                <Radio className="size-4 text-teal-500 animate-pulse" />
+                <span className="text-xs text-teal-600">Connexion...</span>
               </>
             ) : (
               <>
@@ -261,7 +261,7 @@ export function CarteClient() {
 
       {/* Status banners */}
       {status === "connecting" && (
-        <div className="flex items-center gap-2 px-4 py-2 bg-blue-50 border-b border-blue-200 text-blue-800 text-sm">
+        <div className="flex items-center gap-2 px-4 py-2 bg-teal-50 border-b border-teal-200 text-teal-800 text-sm">
           <Loader2 className="size-4 shrink-0 animate-spin" />
           Connexion au flux AIS en cours...
         </div>
@@ -279,7 +279,7 @@ export function CarteClient() {
           <CarteMap vessels={vessels} leafletIcon={leafletLib} />
         ) : (
           <div className="flex items-center justify-center h-full">
-            <Loader2 className="size-8 animate-spin text-blue-600" />
+            <Loader2 className="size-8 animate-spin text-teal-600" />
           </div>
         )}
       </div>

@@ -72,8 +72,8 @@ function NtsCard({ notice }: { notice: NtsNotice }) {
           onClick={() => setExpanded(!expanded)}
           className="w-full text-left p-5 flex items-start gap-3"
         >
-          <div className="flex items-center justify-center size-10 rounded-full bg-blue-100 shrink-0 mt-0.5">
-            <Ship className="size-5 text-blue-600" />
+          <div className="flex items-center justify-center size-10 rounded-full bg-teal-100 shrink-0 mt-0.5">
+            <Ship className="size-5 text-teal-600" />
           </div>
 
           <div className="flex-1 min-w-0">
@@ -227,7 +227,7 @@ function NtsCard({ notice }: { notice: NtsNotice }) {
                 href={`https://www.eurisportal.eu/nts-detail?ntsnumber=${encodeURIComponent(notice.number)}&organisation=${encodeURIComponent(notice.organisation)}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 mt-1 text-sm text-blue-600 hover:text-blue-800 hover:underline"
+                className="inline-flex items-center gap-1.5 mt-1 text-sm text-teal-600 hover:text-teal-800 hover:underline"
               >
                 <ExternalLink className="h-3.5 w-3.5" />
                 Voir la fiche complete sur EuRIS

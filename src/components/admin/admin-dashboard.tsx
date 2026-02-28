@@ -36,8 +36,8 @@ const STAT_CARDS = [
     key: "approvedMembers" as const,
     label: "Total membres",
     icon: Users,
-    color: "text-blue-600",
-    bg: "bg-blue-50",
+    color: "text-teal-600",
+    bg: "bg-teal-50",
   },
   {
     key: "pendingMembers" as const,
@@ -170,7 +170,7 @@ export function AdminDashboard({ profile, stats }: AdminDashboardProps) {
                         {count}
                       </span>
                       <div
-                        className="w-full rounded-t-md bg-blue-500 transition-all duration-300"
+                        className="w-full rounded-t-md bg-teal-500 transition-all duration-300"
                         style={{ height: `${height}%` }}
                       />
                       <span className="text-xs text-muted-foreground">
@@ -202,8 +202,8 @@ export function AdminDashboard({ profile, stats }: AdminDashboardProps) {
                 className="w-full justify-between h-auto py-3"
               >
                 <div className="flex items-center gap-3">
-                  <div className="rounded-lg bg-blue-50 p-2">
-                    <Users className="size-4 text-blue-600" />
+                  <div className="rounded-lg bg-teal-50 p-2">
+                    <Users className="size-4 text-teal-600" />
                   </div>
                   <div className="text-left">
                     <p className="font-medium text-sm">Gestion des membres</p>

@@ -335,7 +335,7 @@ export function CreatePostDialog({
               >
                 Annuler
               </Button>
-              <Button type="submit" disabled={submitting}>
+              <Button type="submit" disabled={submitting} className="rounded-full">
                 {submitting ? (
                   <>
                     <Loader2Icon className="size-4 animate-spin" />

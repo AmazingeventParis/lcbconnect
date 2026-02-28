@@ -76,14 +76,14 @@ export function MobileNav({ profile: _profile }: MobileNavProps) {
       {/* More menu panel */}
       {moreOpen && (
         <div className="fixed bottom-14 left-0 right-0 z-50 md:hidden animate-in slide-in-from-bottom-4 duration-200">
-          <div className="mx-3 mb-2 rounded-xl border border-slate-200 bg-white shadow-lg overflow-hidden">
-            <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100">
-              <span className="text-sm font-semibold text-slate-700">
+          <div className="mx-3 mb-2 rounded-xl border border-border bg-white shadow-lg overflow-hidden">
+            <div className="flex items-center justify-between px-4 py-3 border-b border-border">
+              <span className="text-sm font-semibold text-foreground">
                 Plus
               </span>
               <button
                 onClick={() => setMoreOpen(false)}
-                className="flex items-center justify-center size-7 rounded-full hover:bg-slate-100 text-slate-400"
+                className="flex items-center justify-center size-7 rounded-full hover:bg-accent text-muted-foreground"
               >
                 <X className="size-4" />
               </button>
@@ -100,14 +100,14 @@ export function MobileNav({ profile: _profile }: MobileNavProps) {
                     className={cn(
                       "flex items-center gap-3 px-4 py-2.5 text-sm transition-colors",
                       active
-                        ? "bg-blue-50 text-blue-700 font-medium"
-                        : "text-slate-600 hover:bg-slate-50"
+                        ? "bg-teal-50 text-teal-700 font-medium"
+                        : "text-foreground hover:bg-accent"
                     )}
                   >
                     <Icon
                       className={cn(
                         "size-5",
-                        active ? "text-blue-600" : "text-slate-400"
+                        active ? "text-teal-600" : "text-muted-foreground"
                       )}
                     />
                     {item.label}
@@ -116,7 +116,7 @@ export function MobileNav({ profile: _profile }: MobileNavProps) {
               })}
               {showAdmin && (
                 <>
-                  <div className="border-t border-slate-100 my-1" />
+                  <div className="border-t border-border my-1" />
                   {ADMIN_NAV_ITEMS.map((item) => {
                     const Icon = item.icon;
                     const active = isActive(item.href);
@@ -128,14 +128,14 @@ export function MobileNav({ profile: _profile }: MobileNavProps) {
                         className={cn(
                           "flex items-center gap-3 px-4 py-2.5 text-sm transition-colors",
                           active
-                            ? "bg-blue-50 text-blue-700 font-medium"
-                            : "text-slate-600 hover:bg-slate-50"
+                            ? "bg-teal-50 text-teal-700 font-medium"
+                            : "text-foreground hover:bg-accent"
                         )}
                       >
                         <Icon
                           className={cn(
                             "size-5",
-                            active ? "text-blue-600" : "text-slate-400"
+                            active ? "text-teal-600" : "text-muted-foreground"
                           )}
                         />
                         {item.label}
@@ -150,7 +150,7 @@ export function MobileNav({ profile: _profile }: MobileNavProps) {
       )}
 
       {/* Bottom nav bar */}
-      <nav className="fixed bottom-0 left-0 right-0 z-50 flex md:hidden border-t border-slate-200 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/80">
+      <nav className="fixed bottom-0 left-0 right-0 z-50 flex md:hidden shadow-[0_-2px_10px_rgba(0,0,0,0.05)] bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/80">
         {MAIN_NAV_ITEMS.map((item) => {
           const Icon = item.icon;
           const active = isActive(item.href);
@@ -162,19 +162,19 @@ export function MobileNav({ profile: _profile }: MobileNavProps) {
               className={cn(
                 "flex flex-1 flex-col items-center gap-1 py-2 text-[10px] font-medium transition-colors",
                 active
-                  ? "text-blue-600"
-                  : "text-slate-400 hover:text-slate-600"
+                  ? "text-teal-600"
+                  : "text-muted-foreground hover:text-foreground"
               )}
             >
               <span className="relative">
                 <Icon
                   className={cn(
                     "size-5",
-                    active ? "text-blue-600" : "text-slate-400"
+                    active ? "text-teal-600" : "text-muted-foreground"
                   )}
                 />
                 {item.href === "/notifications" && unreadCount > 0 && (
-                  <span className="absolute -top-1 -right-1.5 flex items-center justify-center size-3.5 rounded-full bg-red-500 text-[8px] font-bold text-white">
+                  <span className="absolute -top-1 -right-1.5 flex items-center justify-center size-3.5 rounded-full bg-[#F4845F] text-[8px] font-bold text-white">
                     {unreadCount > 9 ? "9+" : unreadCount}
                   </span>
                 )}
@@ -190,14 +190,14 @@ export function MobileNav({ profile: _profile }: MobileNavProps) {
           className={cn(
             "flex flex-1 flex-col items-center gap-1 py-2 text-[10px] font-medium transition-colors",
             moreOpen || isMoreActive
-              ? "text-blue-600"
-              : "text-slate-400 hover:text-slate-600"
+              ? "text-teal-600"
+              : "text-muted-foreground hover:text-foreground"
           )}
         >
           <Menu
             className={cn(
               "size-5",
-              moreOpen || isMoreActive ? "text-blue-600" : "text-slate-400"
+              moreOpen || isMoreActive ? "text-teal-600" : "text-muted-foreground"
             )}
           />
           Plus

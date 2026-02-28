@@ -5,10 +5,10 @@ import { Button } from "@/components/ui/button";
 
 export default function OfflinePage() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4">
+    <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="w-full max-w-sm text-center">
-        <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-blue-50">
-          <WifiOff className="h-10 w-10 text-blue-600" />
+        <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-teal-50">
+          <WifiOff className="h-10 w-10 text-teal-600" />
         </div>
 
         <h1 className="mb-2 text-2xl font-bold text-gray-900">

@@ -68,13 +68,13 @@ export function Sidebar({ profile }: SidebarProps) {
   const showAdmin = hasMinRole(profile.role, "ca");
 
   return (
-    <aside className="hidden md:flex md:flex-col md:w-[280px] md:min-h-screen border-r border-slate-200 bg-slate-50">
+    <aside className="hidden md:flex md:flex-col md:w-[280px] md:min-h-screen border-r border-border bg-[#F8FFFE]">
       {/* Logo */}
-      <div className="flex items-center gap-3 px-6 py-5 border-b border-slate-200">
-        <div className="flex items-center justify-center size-9 rounded-lg bg-blue-600">
+      <div className="flex items-center gap-3 px-6 py-5 border-b border-border">
+        <div className="flex items-center justify-center size-9 rounded-lg bg-teal-600">
           <Anchor className="size-5 text-white" />
         </div>
-        <span className="text-xl font-bold text-slate-900">LCBconnect</span>
+        <span className="text-xl font-bold text-foreground">LCBconnect</span>
       </div>
 
       {/* Navigation */}
@@ -90,14 +90,14 @@ export function Sidebar({ profile }: SidebarProps) {
                 className={cn(
                   "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
                   active
-                    ? "bg-blue-100 text-blue-700"
-                    : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+                    ? "bg-teal-50 text-teal-700 border-l-3 border-teal-500"
+                    : "text-muted-foreground hover:bg-accent hover:text-foreground"
                 )}
               >
                 <Icon
                   className={cn(
                     "size-5 shrink-0",
-                    active ? "text-blue-600" : "text-slate-400"
+                    active ? "text-teal-600" : "text-muted-foreground"
                   )}
                 />
                 {item.label}
@@ -110,7 +110,7 @@ export function Sidebar({ profile }: SidebarProps) {
         {showAdmin && (
           <div className="mt-6">
             <div className="px-3 mb-2">
-              <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">
+              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                 Administration
               </p>
             </div>
@@ -125,14 +125,14 @@ export function Sidebar({ profile }: SidebarProps) {
                     className={cn(
                       "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
                       active
-                        ? "bg-blue-100 text-blue-700"
-                        : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+                        ? "bg-teal-50 text-teal-700 border-l-3 border-teal-500"
+                        : "text-muted-foreground hover:bg-accent hover:text-foreground"
                     )}
                   >
                     <Icon
                       className={cn(
                         "size-5 shrink-0",
-                        active ? "text-blue-600" : "text-slate-400"
+                        active ? "text-teal-600" : "text-muted-foreground"
                       )}
                     />
                     {item.label}
@@ -145,7 +145,7 @@ export function Sidebar({ profile }: SidebarProps) {
       </nav>
 
       {/* User section */}
-      <div className="border-t border-slate-200 p-3">
+      <div className="border-t border-border p-3">
         <div className="flex items-center gap-3 rounded-lg p-3">
           <Link href="/profile" className="shrink-0">
             <Avatar>
@@ -153,14 +153,14 @@ export function Sidebar({ profile }: SidebarProps) {
                 src={profile.avatar_url ?? undefined}
                 alt={profile.full_name}
               />
-              <AvatarFallback className="bg-blue-100 text-blue-700 text-xs">
+              <AvatarFallback className="bg-teal-100 text-teal-700 text-xs">
                 {getInitials(profile.full_name)}
               </AvatarFallback>
             </Avatar>
           </Link>
           <div className="flex-1 min-w-0">
             <Link href="/profile">
-              <p className="text-sm font-medium text-slate-900 truncate">
+              <p className="text-sm font-medium text-foreground truncate">
                 {profile.full_name}
               </p>
             </Link>
@@ -173,7 +173,7 @@ export function Sidebar({ profile }: SidebarProps) {
           </div>
           <Link
             href="/notifications"
-            className="shrink-0 flex items-center justify-center size-9 rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors"
+            className="shrink-0 flex items-center justify-center size-9 rounded-lg text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
           >
             <Bell className="size-5" />
           </Link>

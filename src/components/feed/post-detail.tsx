@@ -45,7 +45,7 @@ const POST_TYPE_ICONS: Record<string, React.ElementType> = {
 };
 
 const POST_TYPE_COLORS: Record<string, string> = {
-  standard: "bg-blue-100 text-blue-700",
+  standard: "bg-teal-100 text-teal-700",
   service: "bg-amber-100 text-amber-700",
   plainte: "bg-red-100 text-red-700",
   officiel_bureau: "bg-purple-100 text-purple-700",

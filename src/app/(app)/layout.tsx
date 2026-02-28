@@ -30,7 +30,7 @@ export default async function AppLayout({
   }
 
   return (
-    <div className="flex min-h-screen bg-white">
+    <div className="flex min-h-screen bg-background">
       {/* Desktop sidebar */}
       <Sidebar profile={profile} />
 

@@ -4,8 +4,8 @@
   "description": "Plateforme communautaire de La Cerise sur le Bateau",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#2563eb",
+  "background_color": "#F0FAF8",
+  "theme_color": "#0D9488",
   "orientation": "portrait-primary",
   "scope": "/",
   "icons": [

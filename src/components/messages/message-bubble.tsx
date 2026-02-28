@@ -101,9 +101,9 @@ export function MessageBubble({
             <TooltipTrigger asChild>
               <div
                 className={cn(
-                  "rounded-2xl px-3 py-2 text-sm break-words whitespace-pre-wrap",
+                  "rounded-2xl px-3 py-2 text-sm break-words whitespace-pre-wrap animate-slide-in-message",
                   isOwn
-                    ? "bg-blue-500 text-white rounded-br-md"
+                    ? "bg-teal-500 text-white rounded-br-md"
                     : "bg-gray-100 text-gray-900 rounded-bl-md"
                 )}
               >
