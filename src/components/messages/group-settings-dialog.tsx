@@ -20,6 +20,7 @@ import type { Conversation } from "@/lib/supabase/types";
 
 interface GroupSettingsDialogProps {
   conversation: Conversation;
+  currentUserId: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onUpdated: (updated: Partial<Conversation>) => void;
@@ -42,6 +43,7 @@ function getGroupIcon(groupType: string | null) {
 
 export function GroupSettingsDialog({
   conversation,
+  currentUserId,
   open,
   onOpenChange,
   onUpdated,
@@ -70,7 +72,7 @@ export function GroupSettingsDialog({
     setUploading(true);
 
     try {
-      const filePath = `groups/${conversation.id}/avatar`;
+      const filePath = `${currentUserId}/group-${conversation.id}`;
 
       const { error: uploadError } = await supabase.storage
         .from("lcb-avatars")

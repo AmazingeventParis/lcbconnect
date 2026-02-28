@@ -910,6 +910,7 @@ export function ChatView({
       {conversation?.is_group && (
         <GroupSettingsDialog
           conversation={conversation}
+          currentUserId={currentUserId}
           open={showGroupSettings}
           onOpenChange={setShowGroupSettings}
           onUpdated={(updated) => {
