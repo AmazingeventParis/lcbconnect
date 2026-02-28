@@ -26,7 +26,7 @@ const ROUTE_TITLES: Record<string, string> = {
   "/armada": "Mon Armada",
   "/messages": "Messagerie",
   "/notifications": "Notifications",
-  "/profile": "Mon profil",
+  "/settings": "Réglages",
   "/admin": "Administration",
 };
 
@@ -101,9 +101,15 @@ export function Header({ profile }: HeaderProps) {
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-48">
             <DropdownMenuItem asChild>
-              <Link href="/profile" className="cursor-pointer">
+              <Link href={`/armada/${profile.id}`} className="cursor-pointer">
                 <User className="size-4" />
                 Mon profil
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link href="/settings" className="cursor-pointer">
+                <Settings className="size-4" />
+                Réglages
               </Link>
             </DropdownMenuItem>
             {showAdmin && (

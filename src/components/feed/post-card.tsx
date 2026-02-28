@@ -2,6 +2,7 @@
 
 import { useState, useCallback } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { formatDistanceToNow } from "date-fns";
 import { fr } from "date-fns/locale/fr";
 import {
@@ -15,6 +16,9 @@ import {
   ShieldIcon,
   AnchorIcon,
   Loader2,
+  MoreHorizontal,
+  Pencil,
+  Trash2,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -37,12 +41,21 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
 
 interface PostCardProps {
   post: PostWithAuthor;
   currentUserId: string;
   onLikeChange?: (postId: string, liked: boolean, newCount: number) => void;
+  onPostDeleted?: (postId: string) => void;
+  onPostUpdated?: (postId: string, title: string, content: string) => void;
 }
 
 const POST_TYPE_ICONS: Record<string, React.ElementType> = {
@@ -67,12 +80,25 @@ const ROLE_COLORS: Record<string, string> = {
   bureau: "bg-purple-100 text-purple-700",
 };
 
-export function PostCard({ post, currentUserId, onLikeChange }: PostCardProps) {
+export function PostCard({ post, currentUserId, onLikeChange, onPostDeleted, onPostUpdated }: PostCardProps) {
+  const router = useRouter();
   const [expanded, setExpanded] = useState(false);
   const [liked, setLiked] = useState(post.user_has_liked);
   const [likesCount, setLikesCount] = useState(post.likes_count);
   const [likeLoading, setLikeLoading] = useState(false);
   const supabase = createClient();
+
+  // Edit state
+  const [editOpen, setEditOpen] = useState(false);
+  const [editTitle, setEditTitle] = useState(post.title || "");
+  const [editContent, setEditContent] = useState(post.content);
+  const [editLoading, setEditLoading] = useState(false);
+
+  // Delete state
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+
+  const isAuthor = post.author.id === currentUserId;
 
   const getInitials = (name: string) => {
     return name
@@ -109,7 +135,6 @@ export function PostCard({ post, currentUserId, onLikeChange }: PostCardProps) {
 
           if (error) throw error;
 
-          // Update likes count on the post
           await supabase
             .from("lcb_posts")
             .update({ likes_count: newCount })
@@ -192,6 +217,58 @@ export function PostCard({ post, currentUserId, onLikeChange }: PostCardProps) {
     [reportReason, supabase, currentUserId, post.id]
   );
 
+  const handleEdit = async () => {
+    if (!editContent.trim()) {
+      toast.error("Le contenu ne peut pas être vide.");
+      return;
+    }
+
+    setEditLoading(true);
+    try {
+      const { error } = await supabase
+        .from("lcb_posts")
+        .update({
+          title: editTitle.trim() || null,
+          content: editContent.trim(),
+        })
+        .eq("id", post.id)
+        .eq("author_id", currentUserId);
+
+      if (error) throw error;
+
+      toast.success("Publication modifiée.");
+      setEditOpen(false);
+      onPostUpdated?.(post.id, editTitle.trim(), editContent.trim());
+      router.refresh();
+    } catch {
+      toast.error("Erreur lors de la modification.");
+    } finally {
+      setEditLoading(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    setDeleteLoading(true);
+    try {
+      // FK CASCADE handles comments and likes deletion
+      const { error } = await supabase
+        .from("lcb_posts")
+        .delete()
+        .eq("id", post.id)
+        .eq("author_id", currentUserId);
+
+      if (error) throw error;
+
+      toast.success("Publication supprimée.");
+      setDeleteOpen(false);
+      onPostDeleted?.(post.id);
+    } catch {
+      toast.error("Erreur lors de la suppression.");
+    } finally {
+      setDeleteLoading(false);
+    }
+  };
+
   const content = post.content;
   const shouldTruncate = content.length > 300 && !expanded;
   const displayContent = shouldTruncate
@@ -250,16 +327,47 @@ export function PostCard({ post, currentUserId, onLikeChange }: PostCardProps) {
           </div>
         </div>
 
-        <Badge
-          variant="secondary"
-          className={cn(
-            "text-[10px] py-0 shrink-0",
-            POST_TYPE_COLORS[post.type]
+        <div className="flex items-center gap-1 shrink-0">
+          <Badge
+            variant="secondary"
+            className={cn(
+              "text-[10px] py-0",
+              POST_TYPE_COLORS[post.type]
+            )}
+          >
+            <TypeIcon className="size-3" />
+            {POST_TYPES[post.type].label}
+          </Badge>
+
+          {isAuthor && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="sm" className="size-8 p-0 text-muted-foreground">
+                  <MoreHorizontal className="size-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem
+                  onClick={() => {
+                    setEditTitle(post.title || "");
+                    setEditContent(post.content);
+                    setEditOpen(true);
+                  }}
+                >
+                  <Pencil className="size-4" />
+                  Modifier
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => setDeleteOpen(true)}
+                  variant="destructive"
+                >
+                  <Trash2 className="size-4" />
+                  Supprimer
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           )}
-        >
-          <TypeIcon className="size-3" />
-          {POST_TYPES[post.type].label}
-        </Badge>
+        </div>
       </div>
 
       {/* Content */}
@@ -322,19 +430,21 @@ export function PostCard({ post, currentUserId, onLikeChange }: PostCardProps) {
           </Link>
         </Button>
 
-        <Button
-          variant="ghost"
-          size="sm"
-          className="flex-1 gap-1.5 text-muted-foreground"
-          onClick={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            setReportOpen(true);
-          }}
-        >
-          <FlagIcon className="size-4" />
-          <span className="text-xs">Signaler</span>
-        </Button>
+        {!isAuthor && (
+          <Button
+            variant="ghost"
+            size="sm"
+            className="flex-1 gap-1.5 text-muted-foreground"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              setReportOpen(true);
+            }}
+          >
+            <FlagIcon className="size-4" />
+            <span className="text-xs">Signaler</span>
+          </Button>
+        )}
       </div>
 
       {/* Report dialog */}
@@ -380,6 +490,78 @@ export function PostCard({ post, currentUserId, onLikeChange }: PostCardProps) {
                 </>
               ) : (
                 "Signaler"
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit dialog */}
+      <Dialog open={editOpen} onOpenChange={setEditOpen}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Modifier la publication</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <Input
+              placeholder="Titre (optionnel)"
+              value={editTitle}
+              onChange={(e) => setEditTitle(e.target.value)}
+            />
+            <Textarea
+              placeholder="Contenu de la publication..."
+              value={editContent}
+              onChange={(e) => setEditContent(e.target.value)}
+              rows={5}
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditOpen(false)}>
+              Annuler
+            </Button>
+            <Button
+              onClick={handleEdit}
+              disabled={editLoading || !editContent.trim()}
+            >
+              {editLoading ? (
+                <>
+                  <Loader2 className="size-4 animate-spin" />
+                  Enregistrement...
+                </>
+              ) : (
+                "Enregistrer"
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete confirmation dialog */}
+      <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Supprimer cette publication ?</DialogTitle>
+            <DialogDescription>
+              Cette action est irréversible. La publication ainsi que tous ses
+              commentaires et likes seront supprimés définitivement.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeleteOpen(false)}>
+              Annuler
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleDelete}
+              disabled={deleteLoading}
+            >
+              {deleteLoading ? (
+                <>
+                  <Loader2 className="size-4 animate-spin" />
+                  Suppression...
+                </>
+              ) : (
+                "Supprimer"
               )}
             </Button>
           </DialogFooter>

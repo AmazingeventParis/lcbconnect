@@ -13,7 +13,6 @@ import {
   BookOpen,
   Users,
   Map,
-  User,
   Settings,
   X,
 } from "lucide-react";
@@ -36,7 +35,7 @@ const MORE_NAV_ITEMS = [
   { href: "/carte", label: "Carte", icon: Map },
   { href: "/documents", label: "Documents", icon: FileText },
   { href: "/notifications", label: "Notifications", icon: Calendar },
-  { href: "/profile", label: "Mon profil", icon: User },
+  { href: "/settings", label: "Réglages", icon: Settings },
 ];
 
 const ADMIN_NAV_ITEMS = [

@@ -112,9 +112,9 @@ CREATE POLICY "posts_update_author_or_bureau"
         OR lcb_is_bureau(auth.uid())
     );
 
-CREATE POLICY "posts_delete_bureau"
+CREATE POLICY "posts_delete_author_or_bureau"
     ON lcb_posts FOR DELETE
-    USING (lcb_is_bureau(auth.uid()));
+    USING (author_id = auth.uid() OR lcb_is_bureau(auth.uid()));
 
 -- ============================================================================
 -- 3. lcb_comments policies

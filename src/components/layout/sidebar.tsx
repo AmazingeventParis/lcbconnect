@@ -13,22 +13,12 @@ import {
   MessageSquare,
   Map,
   Settings,
-  User,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { hasMinRole } from "@/lib/constants";
 import { useNotifications } from "@/lib/hooks/use-notifications";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
 import type { Profile } from "@/lib/supabase/types";
-import type { Role } from "@/lib/constants";
 import type { SectionCounts } from "@/lib/hooks/use-notifications";
-
-const ROLE_LABELS: Record<Role, string> = {
-  membre: "Membre",
-  ca: "Conseil d'Administration",
-  bureau: "Bureau",
-};
 
 const NAV_ITEMS = [
   { href: "/feed", label: "Fil d'actualités", icon: Newspaper },
@@ -53,15 +43,6 @@ const HREF_TO_SECTION: Record<string, keyof SectionCounts> = {
   "/directory": "directory",
   "/admin": "admin",
 };
-
-function getInitials(name: string): string {
-  return name
-    .split(" ")
-    .map((part) => part[0])
-    .join("")
-    .toUpperCase()
-    .slice(0, 2);
-}
 
 interface SidebarProps {
   profile: Profile;
@@ -180,31 +161,8 @@ export function Sidebar({ profile }: SidebarProps) {
         )}
       </nav>
 
-      {/* User section */}
-      <div className="border-t border-white/10 p-3">
-        <Link href="/profile" className="flex items-center gap-3 rounded-lg p-3 hover:bg-white/5 transition-colors">
-          <Avatar className="shrink-0">
-            <AvatarImage
-              src={profile.avatar_url ?? undefined}
-              alt={profile.full_name}
-            />
-            <AvatarFallback className="bg-[#D4A853]/20 text-[#D4A853] text-xs">
-              {getInitials(profile.full_name)}
-            </AvatarFallback>
-          </Avatar>
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-white truncate">
-              {profile.full_name}
-            </p>
-            <Badge
-              variant="secondary"
-              className="text-[10px] px-1.5 py-0 h-4 font-normal bg-white/10 text-slate-300 border-0"
-            >
-              {ROLE_LABELS[profile.role]}
-            </Badge>
-          </div>
-        </Link>
-      </div>
+      {/* Spacer */}
+      <div className="border-t border-white/10" />
     </aside>
   );
 }
