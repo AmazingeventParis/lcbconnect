@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Star, Phone, Mail, MapPin } from "lucide-react";
+import { Star, Phone, Mail, MapPin, Globe } from "lucide-react";
 
 import type { DirectoryEntry } from "@/lib/supabase/types";
 
@@ -86,6 +86,12 @@ export function DirectoryCard({ entry, isAdmin }: DirectoryCardProps) {
               <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                 <Mail className="h-3 w-3 shrink-0" />
                 <span className="truncate">{entry.email}</span>
+              </div>
+            )}
+            {entry.website && (
+              <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                <Globe className="h-3 w-3 shrink-0" />
+                <span className="truncate">{entry.website}</span>
               </div>
             )}
             {entry.address && (

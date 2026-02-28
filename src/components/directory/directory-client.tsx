@@ -21,16 +21,21 @@ import { DirectoryCard } from "./directory-card";
 import { CreateDirectoryDialog } from "./create-directory-dialog";
 
 const DIRECTORY_CATEGORIES: Record<string, string> = {
-  restaurant: "Restaurant",
-  bar: "Bar",
-  commerce: "Commerce",
-  artisan: "Artisan",
-  service: "Service",
-  sante: "Santé",
-  transport: "Transport",
-  loisirs: "Loisirs",
-  hebergement: "Hébergement",
-  nautique: "Nautique",
+  electricite: "Électricité",
+  chauffage: "Chauffage / Plomberie",
+  ramonage: "Ramonage",
+  mecanique: "Mécanique moteur",
+  peinture: "Peinture / Carénage",
+  boiserie: "Boiserie / Menuiserie",
+  accastillage: "Accastillage",
+  soudure: "Soudure / Métallerie",
+  voilerie: "Voilerie / Sellerie",
+  electronique: "Électronique / Navigation",
+  nettoyage: "Nettoyage / Entretien",
+  grutage: "Grutage / Manutention",
+  expertise: "Expertise / Contrôle technique",
+  assurance: "Assurance maritime",
+  shipchandler: "Shipchandler",
   autre: "Autre",
 };
 
@@ -102,12 +107,12 @@ export function DirectoryClient({ profile }: DirectoryClientProps) {
         <div>
           <h1 className="text-2xl font-bold">Annuaire</h1>
           <p className="text-muted-foreground mt-1">
-            Bonnes adresses recommandées par les membres.
+            Artisans et prestataires recommandés par les membres.
           </p>
         </div>
         <Button onClick={() => setDialogOpen(true)}>
           <Plus className="h-4 w-4" />
-          Proposer une adresse
+          Proposer un prestataire
         </Button>
       </div>
 
@@ -116,7 +121,7 @@ export function DirectoryClient({ profile }: DirectoryClientProps) {
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Rechercher par nom, description, adresse..."
+            placeholder="Rechercher par nom, spécialité, zone..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-9"
@@ -155,16 +160,16 @@ export function DirectoryClient({ profile }: DirectoryClientProps) {
             <BookOpen className="h-8 w-8 text-muted-foreground" />
           </div>
           <h3 className="text-lg font-semibold">
-            Aucune adresse trouvée
+            Aucun prestataire trouvé
           </h3>
           <p className="text-muted-foreground mt-1 max-w-md">
             {searchQuery
               ? `Aucun résultat pour "${searchQuery}".`
-              : "Aucune adresse dans l'annuaire pour le moment. Proposez la première !"}
+              : "Aucun prestataire dans l'annuaire pour le moment. Proposez le premier !"}
           </p>
           <Button onClick={() => setDialogOpen(true)} className="mt-4">
             <Plus className="h-4 w-4" />
-            Proposer une adresse
+            Proposer un prestataire
           </Button>
         </div>
       ) : (

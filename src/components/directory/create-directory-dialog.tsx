@@ -92,7 +92,7 @@ export function CreateDirectoryDialog({
           .single();
 
         if (error) {
-          toast.error("Erreur lors de la création de l'adresse.");
+          toast.error("Erreur lors de la création du prestataire.");
           return;
         }
 
@@ -106,7 +106,7 @@ export function CreateDirectoryDialog({
         }
 
         toast.success(
-          "Adresse proposée avec succès ! Elle sera visible après approbation par le bureau."
+          "Prestataire proposé avec succès ! Il sera visible après approbation par le bureau."
         );
         form.reset();
         onCreated();
@@ -127,9 +127,9 @@ export function CreateDirectoryDialog({
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Proposer une adresse</DialogTitle>
+          <DialogTitle>Proposer un prestataire</DialogTitle>
           <DialogDescription>
-            Partagez une bonne adresse avec les membres. Elle sera publiée après
+            Recommandez un artisan ou prestataire. Il sera publié après
             validation par le bureau.
           </DialogDescription>
         </DialogHeader>
@@ -145,7 +145,7 @@ export function CreateDirectoryDialog({
                   <FormLabel>Nom</FormLabel>
                   <FormControl>
                     <Input
-                      placeholder="Ex: Restaurant Le Phare"
+                      placeholder="Ex: Martin Électricité Marine"
                       {...field}
                     />
                   </FormControl>
@@ -194,7 +194,7 @@ export function CreateDirectoryDialog({
                   <FormLabel>Description</FormLabel>
                   <FormControl>
                     <Textarea
-                      placeholder="Décrivez cette adresse..."
+                      placeholder="Décrivez ce prestataire, ses spécialités, votre expérience..."
                       rows={4}
                       {...field}
                     />
@@ -265,10 +265,10 @@ export function CreateDirectoryDialog({
               name="address"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Adresse (optionnel)</FormLabel>
+                  <FormLabel>Zone d'intervention (optionnel)</FormLabel>
                   <FormControl>
                     <Input
-                      placeholder="Ex: 12 quai des Pêcheurs, 75001 Paris"
+                      placeholder="Ex: Île-de-France, Canal du Midi..."
                       {...field}
                     />
                   </FormControl>
@@ -292,7 +292,7 @@ export function CreateDirectoryDialog({
                     Envoi...
                   </>
                 ) : (
-                  "Proposer l'adresse"
+                  "Proposer"
                 )}
               </Button>
             </DialogFooter>
