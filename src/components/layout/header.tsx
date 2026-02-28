@@ -2,11 +2,9 @@
 
 import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
-import { Bell, LogOut, Settings, User } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { LogOut, Settings, User } from "lucide-react";
 import { hasMinRole } from "@/lib/constants";
 import { createClient } from "@/lib/supabase/client";
-import { useNotifications } from "@/lib/hooks/use-notifications";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -66,7 +64,6 @@ export function Header({ profile }: HeaderProps) {
 
   const pageTitle = getPageTitle(pathname);
   const showAdmin = hasMinRole(profile.role, "ca");
-  const { unreadCount } = useNotifications(profile.id);
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
@@ -83,25 +80,8 @@ export function Header({ profile }: HeaderProps) {
         </h1>
       </div>
 
-      {/* Right: notifications + user dropdown */}
+      {/* Right: user dropdown */}
       <div className="flex items-center gap-2">
-        <Link
-          href="/notifications"
-          className={cn(
-            "relative flex items-center justify-center size-9 rounded-lg transition-colors",
-            pathname.startsWith("/notifications")
-              ? "bg-[#1E3A5F]/10 text-[#1E3A5F]"
-              : "text-muted-foreground hover:bg-accent hover:text-foreground"
-          )}
-        >
-          <Bell className="size-5" />
-          {unreadCount > 0 && (
-            <span className="absolute -top-0.5 -right-0.5 flex items-center justify-center size-4 rounded-full bg-[#D4A853] text-[10px] font-bold text-white">
-              {unreadCount > 9 ? "9+" : unreadCount}
-            </span>
-          )}
-        </Link>
-
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <button className="flex items-center gap-2 rounded-lg p-1.5 hover:bg-accent transition-colors focus:outline-none">

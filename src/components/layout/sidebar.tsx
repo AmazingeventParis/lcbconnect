@@ -13,7 +13,6 @@ import {
   MessageSquare,
   Map,
   Settings,
-  Bell,
   User,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -70,7 +69,7 @@ interface SidebarProps {
 
 export function Sidebar({ profile }: SidebarProps) {
   const pathname = usePathname();
-  const { sectionCounts } = useNotifications(profile.id);
+  const { sectionCounts, markSectionRead } = useNotifications(profile.id);
 
   const isActive = (href: string) => {
     if (href === "/feed") {
@@ -80,6 +79,13 @@ export function Sidebar({ profile }: SidebarProps) {
   };
 
   const showAdmin = hasMinRole(profile.role, "ca");
+
+  const handleNavClick = (href: string) => {
+    const section = HREF_TO_SECTION[href];
+    if (section && sectionCounts[section] > 0) {
+      markSectionRead(section);
+    }
+  };
 
   return (
     <aside className="hidden md:flex md:flex-col md:w-[280px] md:min-h-screen border-r border-white/10 bg-[#1E3A5F]">
@@ -103,6 +109,7 @@ export function Sidebar({ profile }: SidebarProps) {
               <Link
                 key={item.href}
                 href={item.href}
+                onClick={() => handleNavClick(item.href)}
                 className={cn(
                   "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
                   active
@@ -145,6 +152,7 @@ export function Sidebar({ profile }: SidebarProps) {
                   <Link
                     key={item.href}
                     href={item.href}
+                    onClick={() => handleNavClick(item.href)}
                     className={cn(
                       "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
                       active
@@ -174,24 +182,20 @@ export function Sidebar({ profile }: SidebarProps) {
 
       {/* User section */}
       <div className="border-t border-white/10 p-3">
-        <div className="flex items-center gap-3 rounded-lg p-3">
-          <Link href="/profile" className="shrink-0">
-            <Avatar>
-              <AvatarImage
-                src={profile.avatar_url ?? undefined}
-                alt={profile.full_name}
-              />
-              <AvatarFallback className="bg-[#D4A853]/20 text-[#D4A853] text-xs">
-                {getInitials(profile.full_name)}
-              </AvatarFallback>
-            </Avatar>
-          </Link>
+        <Link href="/profile" className="flex items-center gap-3 rounded-lg p-3 hover:bg-white/5 transition-colors">
+          <Avatar className="shrink-0">
+            <AvatarImage
+              src={profile.avatar_url ?? undefined}
+              alt={profile.full_name}
+            />
+            <AvatarFallback className="bg-[#D4A853]/20 text-[#D4A853] text-xs">
+              {getInitials(profile.full_name)}
+            </AvatarFallback>
+          </Avatar>
           <div className="flex-1 min-w-0">
-            <Link href="/profile">
-              <p className="text-sm font-medium text-white truncate">
-                {profile.full_name}
-              </p>
-            </Link>
+            <p className="text-sm font-medium text-white truncate">
+              {profile.full_name}
+            </p>
             <Badge
               variant="secondary"
               className="text-[10px] px-1.5 py-0 h-4 font-normal bg-white/10 text-slate-300 border-0"
@@ -199,18 +203,7 @@ export function Sidebar({ profile }: SidebarProps) {
               {ROLE_LABELS[profile.role]}
             </Badge>
           </div>
-          <Link
-            href="/notifications"
-            className="shrink-0 relative flex items-center justify-center size-9 rounded-lg text-slate-400 hover:bg-white/10 hover:text-white transition-colors"
-          >
-            <Bell className="size-5" />
-            {sectionCounts.total > 0 && (
-              <span className="absolute -top-0.5 -right-0.5 flex items-center justify-center size-4 rounded-full bg-[#D4A853] text-[8px] font-bold text-white">
-                {sectionCounts.total > 9 ? "9+" : sectionCounts.total}
-              </span>
-            )}
-          </Link>
-        </div>
+        </Link>
       </div>
     </aside>
   );

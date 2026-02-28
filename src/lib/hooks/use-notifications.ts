@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import type { Notification } from "@/lib/supabase/types";
 
 export type SectionCounts = {
   feed: number;
@@ -22,6 +21,15 @@ const EMPTY_COUNTS: SectionCounts = {
   directory: 0,
   admin: 0,
   total: 0,
+};
+
+const SECTION_TYPES: Record<string, string[]> = {
+  feed: ["like", "comment", "reply"],
+  messages: ["message", "mention"],
+  events: ["event"],
+  documents: ["document"],
+  directory: ["directory"],
+  admin: ["admin", "complaint", "service", "report"],
 };
 
 function computeSectionCounts(types: string[]): SectionCounts {
@@ -82,6 +90,26 @@ export function useNotifications(userId: string | undefined) {
     }
   }, [supabase, userId]);
 
+  // Mark all notifications for a given section as read
+  const markSectionRead = useCallback(
+    async (section: keyof SectionCounts) => {
+      if (!userId || section === "total") return;
+      const types = SECTION_TYPES[section];
+      if (!types || types.length === 0) return;
+
+      await (supabase as any)
+        .from("lcb_notifications")
+        .update({ is_read: true })
+        .eq("user_id", userId)
+        .eq("is_read", false)
+        .in("type", types);
+
+      // Refresh counts after marking
+      fetchCount();
+    },
+    [supabase, userId, fetchCount]
+  );
+
   useEffect(() => {
     fetchCount();
   }, [fetchCount]);
@@ -127,5 +155,6 @@ export function useNotifications(userId: string | undefined) {
     unreadCount,
     sectionCounts,
     refreshCount: fetchCount,
+    markSectionRead,
   };
 }

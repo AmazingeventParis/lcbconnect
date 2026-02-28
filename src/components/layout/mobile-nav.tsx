@@ -7,7 +7,6 @@ import {
   Newspaper,
   Calendar,
   MessageSquare,
-  Bell,
   Menu,
   Ship,
   FileText,
@@ -22,20 +21,21 @@ import { cn } from "@/lib/utils";
 import { hasMinRole } from "@/lib/constants";
 import { useNotifications } from "@/lib/hooks/use-notifications";
 import type { Profile } from "@/lib/supabase/types";
+import type { SectionCounts } from "@/lib/hooks/use-notifications";
 
 const MAIN_NAV_ITEMS = [
   { href: "/feed", label: "Fil", icon: Newspaper },
-  { href: "/armada", label: "Armada", icon: Users },
   { href: "/messages", label: "Messages", icon: MessageSquare },
-  { href: "/notifications", label: "Notifs", icon: Bell },
+  { href: "/events", label: "Agenda", icon: Calendar },
+  { href: "/armada", label: "Armada", icon: Users },
 ];
 
 const MORE_NAV_ITEMS = [
-  { href: "/events", label: "Agenda", icon: Calendar },
   { href: "/directory", label: "Annuaire", icon: BookOpen },
   { href: "/avis-batellerie", label: "Avis Batellerie", icon: Ship },
   { href: "/carte", label: "Carte", icon: Map },
   { href: "/documents", label: "Documents", icon: FileText },
+  { href: "/notifications", label: "Notifications", icon: Calendar },
   { href: "/profile", label: "Mon profil", icon: User },
 ];
 
@@ -43,13 +43,22 @@ const ADMIN_NAV_ITEMS = [
   { href: "/admin", label: "Administration", icon: Settings },
 ];
 
+const HREF_TO_SECTION: Record<string, keyof SectionCounts> = {
+  "/feed": "feed",
+  "/messages": "messages",
+  "/events": "events",
+  "/documents": "documents",
+  "/directory": "directory",
+  "/admin": "admin",
+};
+
 interface MobileNavProps {
   profile: Profile;
 }
 
 export function MobileNav({ profile: _profile }: MobileNavProps) {
   const pathname = usePathname();
-  const { unreadCount, sectionCounts } = useNotifications(_profile.id);
+  const { sectionCounts, markSectionRead } = useNotifications(_profile.id);
   const [moreOpen, setMoreOpen] = useState(false);
 
   const showAdmin = hasMinRole(_profile.role, "ca");
@@ -59,6 +68,13 @@ export function MobileNav({ profile: _profile }: MobileNavProps) {
       return pathname === "/feed" || pathname === "/";
     }
     return pathname.startsWith(href);
+  };
+
+  const handleNavClick = (href: string) => {
+    const section = HREF_TO_SECTION[href];
+    if (section && sectionCounts[section] > 0) {
+      markSectionRead(section);
+    }
   };
 
   // Check if any "more" item is active
@@ -98,7 +114,10 @@ export function MobileNav({ profile: _profile }: MobileNavProps) {
                   <Link
                     key={item.href}
                     href={item.href}
-                    onClick={() => setMoreOpen(false)}
+                    onClick={() => {
+                      setMoreOpen(false);
+                      handleNavClick(item.href);
+                    }}
                     className={cn(
                       "flex items-center gap-3 px-4 py-2.5 text-sm transition-colors",
                       active
@@ -126,7 +145,10 @@ export function MobileNav({ profile: _profile }: MobileNavProps) {
                       <Link
                         key={item.href}
                         href={item.href}
-                        onClick={() => setMoreOpen(false)}
+                        onClick={() => {
+                          setMoreOpen(false);
+                          handleNavClick(item.href);
+                        }}
                         className={cn(
                           "flex items-center gap-3 px-4 py-2.5 text-sm transition-colors",
                           active
@@ -156,11 +178,16 @@ export function MobileNav({ profile: _profile }: MobileNavProps) {
         {MAIN_NAV_ITEMS.map((item) => {
           const Icon = item.icon;
           const active = isActive(item.href);
+          const section = HREF_TO_SECTION[item.href];
+          const count = section ? sectionCounts[section] : 0;
           return (
             <Link
               key={item.href}
               href={item.href}
-              onClick={() => setMoreOpen(false)}
+              onClick={() => {
+                setMoreOpen(false);
+                handleNavClick(item.href);
+              }}
               className={cn(
                 "flex flex-1 flex-col items-center gap-1 py-2 text-[10px] font-medium transition-colors",
                 active
@@ -175,24 +202,9 @@ export function MobileNav({ profile: _profile }: MobileNavProps) {
                     active ? "text-[#1E3A5F]" : "text-muted-foreground"
                   )}
                 />
-                {item.href === "/notifications" && unreadCount > 0 && (
+                {count > 0 && (
                   <span className="absolute -top-1 -right-1.5 flex items-center justify-center size-3.5 rounded-full bg-[#D4A853] text-[8px] font-bold text-white">
-                    {unreadCount > 9 ? "9+" : unreadCount}
-                  </span>
-                )}
-                {item.href === "/feed" && sectionCounts.feed > 0 && (
-                  <span className="absolute -top-1 -right-1.5 flex items-center justify-center size-3.5 rounded-full bg-[#D4A853] text-[8px] font-bold text-white">
-                    {sectionCounts.feed > 9 ? "9+" : sectionCounts.feed}
-                  </span>
-                )}
-                {item.href === "/events" && sectionCounts.events > 0 && (
-                  <span className="absolute -top-1 -right-1.5 flex items-center justify-center size-3.5 rounded-full bg-[#D4A853] text-[8px] font-bold text-white">
-                    {sectionCounts.events > 9 ? "9+" : sectionCounts.events}
-                  </span>
-                )}
-                {item.href === "/messages" && sectionCounts.messages > 0 && (
-                  <span className="absolute -top-1 -right-1.5 flex items-center justify-center size-3.5 rounded-full bg-[#D4A853] text-[8px] font-bold text-white">
-                    {sectionCounts.messages > 9 ? "9+" : sectionCounts.messages}
+                    {count > 9 ? "9+" : count}
                   </span>
                 )}
               </span>
