@@ -14,6 +14,7 @@ import {
   Users,
   Shield,
   Landmark,
+  Hash,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { Profile, Message, Conversation } from "@/lib/supabase/types";
@@ -43,6 +44,10 @@ function getGroupIcon(groupType: string | null) {
       return <Shield className="size-4" />;
     case "bureau":
       return <Landmark className="size-4" />;
+    case "channel":
+      return <Hash className="size-4" />;
+    case "channel_ca":
+      return <Shield className="size-4" />;
     default:
       return <Users className="size-4" />;
   }

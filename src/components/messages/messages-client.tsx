@@ -8,7 +8,8 @@ import { Button } from "@/components/ui/button";
 import { ConversationList } from "./conversation-list";
 import { ChatView } from "./chat-view";
 import { NewConversationDialog } from "./new-conversation-dialog";
-import { MessageSquarePlus, MessageCircle } from "lucide-react";
+import { ChannelList } from "./channel-list";
+import { MessageSquarePlus, MessageCircle, Hash } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { Profile } from "@/lib/supabase/types";
 
@@ -26,6 +27,7 @@ export function MessagesClient({ profile }: MessagesClientProps) {
     string | null
   >(null);
   const [showNewDialog, setShowNewDialog] = useState(false);
+  const [showChannels, setShowChannels] = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   // Handle ?dm={userId} — auto-create/open a 1:1 conversation
@@ -114,15 +116,25 @@ export function MessagesClient({ profile }: MessagesClientProps) {
       >
         {/* Header */}
         <div className="flex items-center justify-between px-4 py-3 border-b shrink-0">
-          <h1 className="text-lg font-bold">Messages</h1>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setShowNewDialog(true)}
-            title="Nouvelle conversation"
-          >
-            <MessageSquarePlus className="size-5" />
-          </Button>
+          <h1 className="text-lg font-bold">Messagerie</h1>
+          <div className="flex items-center gap-1">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowChannels(true)}
+              title="Groupes"
+            >
+              <Hash className="size-5" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowNewDialog(true)}
+              title="Nouvelle conversation"
+            >
+              <MessageSquarePlus className="size-5" />
+            </Button>
+          </div>
         </div>
 
         {/* Conversation list */}
@@ -175,6 +187,13 @@ export function MessagesClient({ profile }: MessagesClientProps) {
         onOpenChange={setShowNewDialog}
         currentUserId={profile.id}
         onConversationCreated={handleConversationCreated}
+      />
+
+      {/* Channel list dialog */}
+      <ChannelList
+        open={showChannels}
+        onOpenChange={setShowChannels}
+        onChannelJoined={() => setRefreshTrigger((prev) => prev + 1)}
       />
     </div>
   );
