@@ -34,8 +34,6 @@ export default async function AdminPage() {
     { count: approvedCount },
     { count: pendingCount },
     { count: postsThisMonthCount },
-    { count: openComplaintsCount },
-    { count: activeServicesCount },
     { count: upcomingEventsCount },
   ] = await Promise.all([
     (supabase as any)
@@ -58,14 +56,6 @@ export default async function AdminPage() {
         ).toISOString()
       ),
     (supabase as any)
-      .from("lcb_complaints")
-      .select("id", { count: "exact", head: true })
-      .in("status", ["soumise", "en_cours"]),
-    (supabase as any)
-      .from("lcb_services")
-      .select("id", { count: "exact", head: true })
-      .in("status", ["ouvert", "en_cours"]),
-    (supabase as any)
       .from("lcb_events")
       .select("id", { count: "exact", head: true })
       .gte("start_date", new Date().toISOString()),
@@ -75,8 +65,6 @@ export default async function AdminPage() {
     approvedMembers: approvedCount ?? 0,
     pendingMembers: pendingCount ?? 0,
     postsThisMonth: postsThisMonthCount ?? 0,
-    openComplaints: openComplaintsCount ?? 0,
-    activeServices: activeServicesCount ?? 0,
     upcomingEvents: upcomingEventsCount ?? 0,
   };
 

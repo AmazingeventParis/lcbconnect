@@ -7,7 +7,6 @@ import {
   UserPlus,
   FileText,
   AlertTriangle,
-  Wrench,
   Calendar,
   ArrowRight,
   BarChart3,
@@ -25,8 +24,6 @@ interface AdminDashboardProps {
     approvedMembers: number;
     pendingMembers: number;
     postsThisMonth: number;
-    openComplaints: number;
-    activeServices: number;
     upcomingEvents: number;
   };
 }
@@ -52,20 +49,6 @@ const STAT_CARDS = [
     icon: FileText,
     color: "text-green-600",
     bg: "bg-green-50",
-  },
-  {
-    key: "openComplaints" as const,
-    label: "Plaintes ouvertes",
-    icon: AlertTriangle,
-    color: "text-red-600",
-    bg: "bg-red-50",
-  },
-  {
-    key: "activeServices" as const,
-    label: "Services actifs",
-    icon: Wrench,
-    color: "text-orange-600",
-    bg: "bg-orange-50",
   },
   {
     key: "upcomingEvents" as const,
@@ -120,7 +103,7 @@ export function AdminDashboard({ profile, stats }: AdminDashboardProps) {
       </div>
 
       {/* Stat cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {STAT_CARDS.map(({ key, label, icon: Icon, color, bg }) => (
           <Card key={key} className="gap-0 py-0">
             <CardHeader className="p-4 pb-2">
@@ -211,30 +194,6 @@ export function AdminDashboard({ profile, stats }: AdminDashboardProps) {
                       {stats.pendingMembers > 0
                         ? `${stats.pendingMembers} en attente d'approbation`
                         : "Aucun membre en attente"}
-                    </p>
-                  </div>
-                </div>
-                <ArrowRight className="size-4 text-muted-foreground" />
-              </Button>
-            </Link>
-
-            <Link href="/admin/complaints" className="block">
-              <Button
-                variant="outline"
-                className="w-full justify-between h-auto py-3"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="rounded-lg bg-red-50 p-2">
-                    <AlertTriangle className="size-4 text-red-600" />
-                  </div>
-                  <div className="text-left">
-                    <p className="font-medium text-sm">
-                      Tableau de bord des plaintes
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {stats.openComplaints > 0
-                        ? `${stats.openComplaints} plainte${stats.openComplaints > 1 ? "s" : ""} ouverte${stats.openComplaints > 1 ? "s" : ""}`
-                        : "Aucune plainte ouverte"}
                     </p>
                   </div>
                 </div>
