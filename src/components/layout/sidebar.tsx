@@ -33,13 +33,13 @@ const ROLE_LABELS: Record<Role, string> = {
 
 const NAV_ITEMS = [
   { href: "/feed", label: "Fil d'actualités", icon: Newspaper },
-  { href: "/avis-batellerie", label: "Avis Batellerie", icon: Ship },
-  { href: "/documents", label: "Documents", icon: FileText },
-  { href: "/events", label: "Événements", icon: Calendar },
-  { href: "/directory", label: "Annuaire", icon: BookOpen },
   { href: "/armada", label: "Mon Armada", icon: Users },
-  { href: "/messages", label: "Messages", icon: MessageSquare },
+  { href: "/messages", label: "Messagerie", icon: MessageSquare },
+  { href: "/events", label: "Agenda", icon: Calendar },
+  { href: "/directory", label: "Annuaire", icon: BookOpen },
+  { href: "/avis-batellerie", label: "Avis Batellerie", icon: Ship },
   { href: "/carte", label: "Carte", icon: Map },
+  { href: "/documents", label: "Documents", icon: FileText },
 ];
 
 const ADMIN_ITEMS = [

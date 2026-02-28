@@ -25,17 +25,17 @@ import type { Profile } from "@/lib/supabase/types";
 
 const MAIN_NAV_ITEMS = [
   { href: "/feed", label: "Fil", icon: Newspaper },
-  { href: "/events", label: "Agenda", icon: Calendar },
+  { href: "/armada", label: "Armada", icon: Users },
   { href: "/messages", label: "Messages", icon: MessageSquare },
   { href: "/notifications", label: "Notifs", icon: Bell },
 ];
 
 const MORE_NAV_ITEMS = [
-  { href: "/avis-batellerie", label: "Avis Batellerie", icon: Ship },
-  { href: "/documents", label: "Documents", icon: FileText },
+  { href: "/events", label: "Agenda", icon: Calendar },
   { href: "/directory", label: "Annuaire", icon: BookOpen },
-  { href: "/armada", label: "Mon Armada", icon: Users },
+  { href: "/avis-batellerie", label: "Avis Batellerie", icon: Ship },
   { href: "/carte", label: "Carte", icon: Map },
+  { href: "/documents", label: "Documents", icon: FileText },
   { href: "/profile", label: "Mon profil", icon: User },
 ];
 
