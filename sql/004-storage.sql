@@ -36,12 +36,12 @@ VALUES (
     ARRAY['application/pdf']
 );
 
--- 4. lcb-attachments - Private bucket for message attachments (10MB, any type)
+-- 4. lcb-attachments - Public bucket for message attachments (10MB, any type)
 INSERT INTO storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
 VALUES (
     'lcb-attachments',
     'lcb-attachments',
-    false,
+    true,
     10485760,  -- 10MB
     NULL  -- any mime type
 );

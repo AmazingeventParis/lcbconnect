@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
+import Image from "next/image";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Tooltip,
@@ -13,6 +14,7 @@ import type { Profile } from "@/lib/supabase/types";
 
 interface MessageBubbleProps {
   content: string;
+  attachments?: string[];
   createdAt: string;
   sender: Pick<Profile, "id" | "full_name" | "avatar_url"> | null;
   isOwn: boolean;
@@ -49,8 +51,35 @@ function getInitials(name: string): string {
     .slice(0, 2);
 }
 
+// Parse content and render mentions as highlighted spans
+function renderContent(content: string, isOwn: boolean) {
+  // Match @[Name](userId) pattern
+  const parts = content.split(/(@\[[^\]]+\]\([^)]+\))/g);
+
+  if (parts.length === 1) return content;
+
+  return parts.map((part, i) => {
+    const mentionMatch = part.match(/@\[([^\]]+)\]\(([^)]+)\)/);
+    if (mentionMatch) {
+      return (
+        <span
+          key={i}
+          className={cn(
+            "font-semibold",
+            isOwn ? "text-blue-200" : "text-[#1E3A5F]"
+          )}
+        >
+          @{mentionMatch[1]}
+        </span>
+      );
+    }
+    return part;
+  });
+}
+
 export function MessageBubble({
   content,
+  attachments,
   createdAt,
   sender,
   isOwn,
@@ -59,6 +88,10 @@ export function MessageBubble({
 }: MessageBubbleProps) {
   const time = useMemo(() => formatTime(createdAt), [createdAt]);
   const fullDate = useMemo(() => formatFullDate(createdAt), [createdAt]);
+
+  const imageUrls = (attachments ?? []).filter(
+    (url) => url.match(/\.(jpg|jpeg|png|gif|webp)($|\?)/i) || url.includes("lcb-attachments")
+  );
 
   return (
     <div
@@ -99,15 +132,47 @@ export function MessageBubble({
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
-              <div
-                className={cn(
-                  "rounded-2xl px-3 py-2 text-sm break-words whitespace-pre-wrap animate-slide-in-message",
-                  isOwn
-                    ? "bg-[#1E3A5F] text-white rounded-br-md"
-                    : "bg-gray-100 text-gray-900 rounded-bl-md"
+              <div className="flex flex-col gap-1">
+                {/* Image attachments */}
+                {imageUrls.length > 0 && (
+                  <div className={cn(
+                    "rounded-2xl overflow-hidden",
+                    isOwn ? "rounded-br-md" : "rounded-bl-md"
+                  )}>
+                    {imageUrls.map((url, i) => (
+                      <a
+                        key={i}
+                        href={url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        <Image
+                          src={url}
+                          alt="Image jointe"
+                          width={280}
+                          height={280}
+                          className="max-w-[280px] max-h-[280px] object-cover rounded-2xl"
+                          style={{ width: "auto", height: "auto" }}
+                          unoptimized
+                        />
+                      </a>
+                    ))}
+                  </div>
                 )}
-              >
-                {content}
+
+                {/* Text content (skip if it's just the photo emoji placeholder) */}
+                {content && content !== "📷 Photo" && (
+                  <div
+                    className={cn(
+                      "rounded-2xl px-3 py-2 text-sm break-words whitespace-pre-wrap animate-slide-in-message",
+                      isOwn
+                        ? "bg-[#1E3A5F] text-white rounded-br-md"
+                        : "bg-gray-100 text-gray-900 rounded-bl-md"
+                    )}
+                  >
+                    {renderContent(content, isOwn)}
+                  </div>
+                )}
               </div>
             </TooltipTrigger>
             <TooltipContent side={isOwn ? "left" : "right"}>

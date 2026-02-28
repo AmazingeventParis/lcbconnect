@@ -14,6 +14,8 @@ import {
   Shield,
   FileText,
   BookOpen,
+  Flag,
+  AtSign,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/client";
@@ -72,6 +74,16 @@ const TYPE_CONFIG: Record<
     icon: BookOpen,
     color: "text-cyan-600",
     bg: "bg-cyan-50",
+  },
+  report: {
+    icon: Flag,
+    color: "text-red-600",
+    bg: "bg-red-50",
+  },
+  mention: {
+    icon: AtSign,
+    color: "text-violet-500",
+    bg: "bg-violet-50",
   },
 };
 

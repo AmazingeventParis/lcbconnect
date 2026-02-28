@@ -21,6 +21,7 @@ const VALID_TYPES = [
   "document",
   "directory",
   "report",
+  "mention",
 ];
 
 export async function POST(request: NextRequest) {
@@ -295,6 +296,22 @@ export async function POST(request: NextRequest) {
                 : `${actorName} a signalé une publication`,
             body: "",
             link: "/admin/reports",
+          });
+        }
+      }
+    } else if (type === "mention" && targetType === "message") {
+      // Mention in message → notify mentioned users
+      // data.mentionedUserIds is a comma-separated string of user IDs
+      const mentionedIds = data?.mentionedUserIds?.split(",").filter(Boolean) ?? [];
+
+      for (const uid of mentionedIds) {
+        if (uid !== actorId) {
+          notifications.push({
+            user_id: uid,
+            type: "mention",
+            title: `${actorName} vous a mentionné(e) dans un message`,
+            body: "",
+            link: "/messages",
           });
         }
       }

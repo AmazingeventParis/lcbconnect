@@ -355,7 +355,7 @@ ALTER TABLE lcb_messages ENABLE ROW LEVEL SECURITY;
 CREATE TABLE lcb_notifications (
     id          uuid PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id     uuid NOT NULL REFERENCES lcb_profiles (id) ON DELETE CASCADE,
-    type        text NOT NULL CHECK (type IN ('like', 'comment', 'reply', 'event', 'service', 'complaint', 'message', 'admin')),
+    type        text NOT NULL CHECK (type IN ('like', 'comment', 'reply', 'event', 'service', 'complaint', 'message', 'admin', 'document', 'directory', 'report', 'mention')),
     title       text NOT NULL,
     body        text,
     link        text,

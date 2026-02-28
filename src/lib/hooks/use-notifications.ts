@@ -51,6 +51,9 @@ function computeSectionCounts(types: string[]): SectionCounts {
       case "report":
         counts.admin++;
         break;
+      case "mention":
+        counts.messages++;
+        break;
     }
     counts.total++;
   }

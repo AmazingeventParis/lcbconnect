@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
+import Image from "next/image";
 import { createClient } from "@/lib/supabase/client";
 import { sendNotification } from "@/lib/notify";
 import { toast } from "sonner";
@@ -15,6 +16,8 @@ import {
   Shield,
   Landmark,
   Hash,
+  ImagePlus,
+  X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { Profile, Message, Conversation } from "@/lib/supabase/types";
@@ -28,6 +31,8 @@ interface ChatViewProps {
 interface MessageWithSender extends Message {
   sender: Pick<Profile, "id" | "full_name" | "avatar_url"> | null;
 }
+
+type MemberSuggestion = Pick<Profile, "id" | "full_name" | "avatar_url">;
 
 function getInitials(name: string): string {
   return name
@@ -53,6 +58,35 @@ function getGroupIcon(groupType: string | null) {
   }
 }
 
+async function compressImage(file: File, maxWidth = 1200, quality = 0.7): Promise<Blob> {
+  return new Promise((resolve) => {
+    const img = document.createElement("img");
+    const canvas = document.createElement("canvas");
+    const reader = new FileReader();
+
+    reader.onload = (e) => {
+      img.onload = () => {
+        let { width, height } = img;
+        if (width > maxWidth) {
+          height = (height * maxWidth) / width;
+          width = maxWidth;
+        }
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d")!;
+        ctx.drawImage(img, 0, 0, width, height);
+        canvas.toBlob(
+          (blob) => resolve(blob ?? file),
+          "image/jpeg",
+          quality
+        );
+      };
+      img.src = e.target?.result as string;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
 export function ChatView({
   conversationId,
   currentUserId,
@@ -61,9 +95,8 @@ export function ChatView({
   const supabase = createClient();
   const [messages, setMessages] = useState<MessageWithSender[]>([]);
   const [conversation, setConversation] = useState<Conversation | null>(null);
-  const [otherMembers, setOtherMembers] = useState<
-    Pick<Profile, "id" | "full_name" | "avatar_url">[]
-  >([]);
+  const [otherMembers, setOtherMembers] = useState<MemberSuggestion[]>([]);
+  const [allMembers, setAllMembers] = useState<MemberSuggestion[]>([]);
   const [inputValue, setInputValue] = useState("");
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
@@ -71,9 +104,29 @@ export function ChatView({
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
+  // Mention state
+  const [mentionQuery, setMentionQuery] = useState<string | null>(null);
+  const [mentionIndex, setMentionIndex] = useState(0);
+  const [mentionStart, setMentionStart] = useState(0);
+  const mentionRef = useRef<HTMLDivElement>(null);
+
+  // Image attachment state
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   const scrollToBottom = useCallback((behavior: ScrollBehavior = "smooth") => {
     messagesEndRef.current?.scrollIntoView({ behavior });
   }, []);
+
+  // Filter members for mention autocomplete
+  const mentionSuggestions =
+    mentionQuery !== null
+      ? allMembers.filter((m) =>
+          m.full_name.toLowerCase().includes(mentionQuery.toLowerCase())
+        ).slice(0, 5)
+      : [];
 
   // Load conversation details and members
   useEffect(() => {
@@ -100,18 +153,18 @@ export function ChatView({
 
       if (cancelled) return;
 
-      const memberIds = (membersData ?? [])
-        .map((m: any) => m.user_id)
-        .filter((id: string) => id !== currentUserId);
+      const allMemberIds = (membersData ?? []).map((m: any) => m.user_id) as string[];
+      const otherIds = allMemberIds.filter((id) => id !== currentUserId);
 
-      if (memberIds.length > 0) {
+      if (allMemberIds.length > 0) {
         const { data: profiles } = await (supabase as any)
           .from("lcb_profiles")
           .select("id, full_name, avatar_url")
-          .in("id", memberIds);
+          .in("id", allMemberIds);
 
-        if (!cancelled) {
-          setOtherMembers(profiles ?? []);
+        if (!cancelled && profiles) {
+          setAllMembers(profiles);
+          setOtherMembers(profiles.filter((p: MemberSuggestion) => p.id !== currentUserId));
         }
       }
 
@@ -129,7 +182,7 @@ export function ChatView({
       const senderIds = [
         ...new Set((msgs ?? []).map((m: any) => m.sender_id)),
       ] as string[];
-      let senderProfiles: Record<
+      const senderProfiles: Record<
         string,
         Pick<Profile, "id" | "full_name" | "avatar_url">
       > = {};
@@ -240,21 +293,104 @@ export function ChatView({
     };
   }, [supabase, conversationId, currentUserId, scrollToBottom]);
 
+  // Extract mentioned user IDs from message content (format: @[Name](userId))
+  function extractMentionedUserIds(content: string): string[] {
+    const regex = /@\[([^\]]+)\]\(([^)]+)\)/g;
+    const ids: string[] = [];
+    let match;
+    while ((match = regex.exec(content)) !== null) {
+      ids.push(match[2]);
+    }
+    return ids;
+  }
+
+  // Upload image to Supabase Storage
+  async function uploadImage(file: File): Promise<string | null> {
+    setUploading(true);
+    try {
+      const compressed = await compressImage(file);
+      const ext = "jpg";
+      const fileName = `${currentUserId}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+
+      const { error } = await supabase.storage
+        .from("lcb-attachments")
+        .upload(fileName, compressed, {
+          cacheControl: "3600",
+          upsert: false,
+          contentType: "image/jpeg",
+        });
+
+      if (error) throw error;
+
+      const { data: urlData } = supabase.storage
+        .from("lcb-attachments")
+        .getPublicUrl(fileName);
+
+      return urlData.publicUrl;
+    } catch (err) {
+      console.error("Upload error:", err);
+      toast.error("Erreur lors de l'envoi de l'image");
+      return null;
+    } finally {
+      setUploading(false);
+    }
+  }
+
+  // Handle image selection
+  function handleImageSelect(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      toast.error("Seules les images sont acceptées");
+      return;
+    }
+
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error("L'image ne doit pas dépasser 10 Mo");
+      return;
+    }
+
+    setImageFile(file);
+    const reader = new FileReader();
+    reader.onload = (ev) => setImagePreview(ev.target?.result as string);
+    reader.readAsDataURL(file);
+  }
+
+  function clearImage() {
+    setImageFile(null);
+    setImagePreview(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  }
+
   // Send message
   const handleSend = async () => {
     const content = inputValue.trim();
-    if (!content || sending) return;
+    if ((!content && !imageFile) || sending) return;
 
     setSending(true);
     setInputValue("");
 
     try {
+      let attachments: string[] = [];
+
+      // Upload image if present
+      if (imageFile) {
+        const url = await uploadImage(imageFile);
+        if (url) attachments = [url];
+        clearImage();
+      }
+
+      const messageContent = content || (attachments.length > 0 ? "📷 Photo" : "");
+      if (!messageContent) return;
+
       const { error } = await (supabase as any)
         .from("lcb_messages")
         .insert({
           conversation_id: conversationId,
           sender_id: currentUserId,
-          content,
+          content: messageContent,
+          attachments,
         });
 
       if (error) throw error;
@@ -272,6 +408,18 @@ export function ChatView({
         targetId: conversationId,
       });
 
+      // Send mention notifications
+      const mentionedIds = extractMentionedUserIds(messageContent);
+      if (mentionedIds.length > 0) {
+        sendNotification({
+          type: "mention",
+          actorId: currentUserId,
+          targetType: "message",
+          targetId: conversationId,
+          data: { mentionedUserIds: mentionedIds.join(",") },
+        });
+      }
+
       setTimeout(() => scrollToBottom(), 100);
     } catch (err) {
       console.error(err);
@@ -283,8 +431,81 @@ export function ChatView({
     }
   };
 
+  // Handle text input change with mention detection
+  function handleInputChange(e: React.ChangeEvent<HTMLTextAreaElement>) {
+    const value = e.target.value;
+    setInputValue(value);
+
+    // Auto-resize textarea
+    e.target.style.height = "auto";
+    e.target.style.height = `${Math.min(e.target.scrollHeight, 120)}px`;
+
+    // Detect @mention
+    const cursorPos = e.target.selectionStart;
+    const textBeforeCursor = value.slice(0, cursorPos);
+
+    // Find the last @ that starts a mention (not inside an existing mention link)
+    const atMatch = textBeforeCursor.match(/@(\w*)$/);
+    if (atMatch) {
+      setMentionQuery(atMatch[1]);
+      setMentionStart(cursorPos - atMatch[0].length);
+      setMentionIndex(0);
+    } else {
+      setMentionQuery(null);
+    }
+  }
+
+  // Insert mention
+  function insertMention(member: MemberSuggestion) {
+    const before = inputValue.slice(0, mentionStart);
+    const after = inputValue.slice(
+      inputRef.current?.selectionStart ?? mentionStart
+    );
+    const mentionText = `@[${member.full_name}](${member.id}) `;
+    const newValue = before + mentionText + after;
+    setInputValue(newValue);
+    setMentionQuery(null);
+
+    // Focus and set cursor position after the mention
+    setTimeout(() => {
+      if (inputRef.current) {
+        inputRef.current.focus();
+        const pos = before.length + mentionText.length;
+        inputRef.current.setSelectionRange(pos, pos);
+      }
+    }, 0);
+  }
+
   // Handle Enter key
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    // If mention suggestions are visible, handle arrow keys and enter
+    if (mentionQuery !== null && mentionSuggestions.length > 0) {
+      if (e.key === "ArrowDown") {
+        e.preventDefault();
+        setMentionIndex((prev) =>
+          prev < mentionSuggestions.length - 1 ? prev + 1 : 0
+        );
+        return;
+      }
+      if (e.key === "ArrowUp") {
+        e.preventDefault();
+        setMentionIndex((prev) =>
+          prev > 0 ? prev - 1 : mentionSuggestions.length - 1
+        );
+        return;
+      }
+      if (e.key === "Enter") {
+        e.preventDefault();
+        insertMention(mentionSuggestions[mentionIndex]);
+        return;
+      }
+      if (e.key === "Escape") {
+        e.preventDefault();
+        setMentionQuery(null);
+        return;
+      }
+    }
+
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       handleSend();
@@ -401,6 +622,7 @@ export function ChatView({
                   )}
                   <MessageBubble
                     content={msg.content}
+                    attachments={msg.attachments}
                     createdAt={msg.created_at}
                     sender={msg.sender}
                     isOwn={isOwn}
@@ -417,19 +639,84 @@ export function ChatView({
 
       {/* Input area */}
       <div className="border-t bg-white p-3 shrink-0">
+        {/* Image preview */}
+        {imagePreview && (
+          <div className="mb-2 relative inline-block">
+            <Image
+              src={imagePreview}
+              alt="Aperçu"
+              width={120}
+              height={120}
+              className="rounded-lg object-cover border"
+              style={{ width: 120, height: 120 }}
+            />
+            <button
+              onClick={clearImage}
+              className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-0.5 hover:bg-red-600"
+            >
+              <X className="size-3.5" />
+            </button>
+          </div>
+        )}
+
+        {/* Mention suggestions dropdown */}
+        {mentionQuery !== null && mentionSuggestions.length > 0 && (
+          <div
+            ref={mentionRef}
+            className="mb-2 bg-white border rounded-xl shadow-lg overflow-hidden max-h-[200px] overflow-y-auto"
+          >
+            {mentionSuggestions.map((member, i) => (
+              <button
+                key={member.id}
+                className={cn(
+                  "flex items-center gap-2 w-full px-3 py-2 text-sm text-left hover:bg-slate-50 transition-colors",
+                  i === mentionIndex && "bg-slate-100"
+                )}
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  insertMention(member);
+                }}
+              >
+                <Avatar className="size-6">
+                  {member.avatar_url && (
+                    <AvatarImage src={member.avatar_url} alt={member.full_name} />
+                  )}
+                  <AvatarFallback className="text-[10px]">
+                    {getInitials(member.full_name)}
+                  </AvatarFallback>
+                </Avatar>
+                <span className="truncate">{member.full_name}</span>
+              </button>
+            ))}
+          </div>
+        )}
+
         <div className="flex items-end gap-2">
+          {/* Image button */}
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            onChange={handleImageSelect}
+            className="hidden"
+          />
+          <Button
+            variant="ghost"
+            size="sm"
+            className="rounded-full size-10 shrink-0 text-muted-foreground hover:text-[#1E3A5F]"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={sending || uploading}
+          >
+            <ImagePlus className="size-5" />
+          </Button>
+
           <div className="flex-1 relative">
             <textarea
               ref={inputRef}
               value={inputValue}
-              onChange={(e) => {
-                setInputValue(e.target.value);
-                // Auto-resize textarea
-                e.target.style.height = "auto";
-                e.target.style.height = `${Math.min(e.target.scrollHeight, 120)}px`;
-              }}
+              onChange={handleInputChange}
               onKeyDown={handleKeyDown}
-              placeholder="Écrivez un message..."
+              placeholder="Écrivez un message... (@nom pour mentionner)"
               className={cn(
                 "w-full resize-none rounded-2xl border bg-gray-50 px-4 py-2.5 text-sm",
                 "focus:outline-none focus:ring-2 focus:ring-[#1E3A5F] focus:border-transparent",
@@ -442,10 +729,10 @@ export function ChatView({
           <Button
             size="sm"
             className="rounded-full size-10 shrink-0"
-            disabled={!inputValue.trim() || sending}
+            disabled={(!inputValue.trim() && !imageFile) || sending || uploading}
             onClick={handleSend}
           >
-            {sending ? (
+            {sending || uploading ? (
               <Loader2 className="size-4 animate-spin" />
             ) : (
               <Send className="size-4" />
