@@ -692,7 +692,7 @@ export function ChatView({
           )}
         </div>
 
-        {conversation?.is_group && hasMinRole(currentUserRole, "bureau") && (
+        {conversation?.is_group && (hasMinRole(currentUserRole, "bureau") || conversation.created_by === currentUserId) && (
           <Button
             variant="ghost"
             size="sm"
