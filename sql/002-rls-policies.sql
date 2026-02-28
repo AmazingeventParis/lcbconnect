@@ -327,6 +327,10 @@ CREATE POLICY "directory_update_ca_bureau"
     ON lcb_directory FOR UPDATE
     USING (lcb_is_ca_or_bureau(auth.uid()));
 
+CREATE POLICY "directory_delete_ca_bureau"
+    ON lcb_directory FOR DELETE
+    USING (lcb_is_ca_or_bureau(auth.uid()));
+
 -- ============================================================================
 -- 13. lcb_directory_reviews policies
 -- ============================================================================
@@ -340,6 +344,10 @@ CREATE POLICY "directory_reviews_insert_approved"
         lcb_is_approved(auth.uid())
         AND author_id = auth.uid()
     );
+
+CREATE POLICY "directory_reviews_delete_ca_bureau"
+    ON lcb_directory_reviews FOR DELETE
+    USING (lcb_is_ca_or_bureau(auth.uid()));
 
 -- ============================================================================
 -- Helper: Check conversation membership (SECURITY DEFINER to avoid
