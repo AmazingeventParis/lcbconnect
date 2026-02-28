@@ -15,7 +15,7 @@ import {
   Users,
   Shield,
   Landmark,
-  Hash,
+  MessageSquare,
   ImagePlus,
   X,
 } from "lucide-react";
@@ -50,7 +50,7 @@ function getGroupIcon(groupType: string | null) {
     case "bureau":
       return <Landmark className="size-4" />;
     case "channel":
-      return <Hash className="size-4" />;
+      return <MessageSquare className="size-4" />;
     case "channel_ca":
       return <Shield className="size-4" />;
     default:

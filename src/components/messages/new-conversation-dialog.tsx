@@ -140,27 +140,27 @@ export function NewConversationDialog({
         }
       }
 
-      const { data: conv, error: convError } = await (supabase as any)
+      const convId = crypto.randomUUID();
+      const { error: convError } = await (supabase as any)
         .from("lcb_conversations")
         .insert({
+          id: convId,
           is_group: false,
           created_by: currentUserId,
-        })
-        .select()
-        .single();
+        });
 
       if (convError) throw convError;
 
       const { error: membersError } = await (supabase as any)
         .from("lcb_conversation_members")
         .insert([
-          { conversation_id: conv.id, user_id: currentUserId },
-          { conversation_id: conv.id, user_id: otherUserId },
+          { conversation_id: convId, user_id: currentUserId },
+          { conversation_id: convId, user_id: otherUserId },
         ]);
 
       if (membersError) throw membersError;
 
-      onConversationCreated(conv.id);
+      onConversationCreated(convId);
       onOpenChange(false);
     } catch (err) {
       console.error(err);
@@ -183,22 +183,22 @@ export function NewConversationDialog({
 
     setCreating(true);
     try {
-      const { data: conv, error: convError } = await (supabase as any)
+      const groupId = crypto.randomUUID();
+      const { error: convError } = await (supabase as any)
         .from("lcb_conversations")
         .insert({
+          id: groupId,
           name: groupName.trim(),
           is_group: true,
           group_type: "custom",
           created_by: currentUserId,
-        })
-        .select()
-        .single();
+        });
 
       if (convError) throw convError;
 
       const memberInserts = [currentUserId, ...selectedUsers].map(
         (userId) => ({
-          conversation_id: conv.id,
+          conversation_id: groupId,
           user_id: userId,
         })
       );
@@ -209,7 +209,7 @@ export function NewConversationDialog({
 
       if (membersError) throw membersError;
 
-      onConversationCreated(conv.id);
+      onConversationCreated(groupId);
       onOpenChange(false);
     } catch (err) {
       console.error(err);
