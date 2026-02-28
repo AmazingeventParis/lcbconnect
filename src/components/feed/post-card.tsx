@@ -168,7 +168,7 @@ export function PostCard({ post, currentUserId, onLikeChange }: PostCardProps) {
     <Card className="gap-0 py-0 overflow-hidden transition-shadow hover:shadow-md">
       {/* Header */}
       <div className="flex items-start gap-3 p-4 pb-2">
-        <Link href={`/profile/${post.author.id}`}>
+        <Link href={`/armada/${post.author.id}`}>
           <Avatar size="lg">
             {post.author.avatar_url && (
               <AvatarImage
@@ -185,7 +185,7 @@ export function PostCard({ post, currentUserId, onLikeChange }: PostCardProps) {
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
             <Link
-              href={`/profile/${post.author.id}`}
+              href={`/armada/${post.author.id}`}
               className="font-semibold text-sm hover:underline truncate"
             >
               {post.author.full_name}

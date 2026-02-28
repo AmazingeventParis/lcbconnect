@@ -25,6 +25,7 @@ const ROUTE_TITLES: Record<string, string> = {
   "/documents": "Documents",
   "/events": "Événements",
   "/directory": "Annuaire",
+  "/armada": "Mon Armada",
   "/messages": "Messages",
   "/notifications": "Notifications",
   "/profile": "Mon profil",

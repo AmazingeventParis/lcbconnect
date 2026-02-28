@@ -9,6 +9,7 @@ import {
   FileText,
   Calendar,
   BookOpen,
+  Users,
   MessageSquare,
   Map,
   Settings,
@@ -36,6 +37,7 @@ const NAV_ITEMS = [
   { href: "/documents", label: "Documents", icon: FileText },
   { href: "/events", label: "Événements", icon: Calendar },
   { href: "/directory", label: "Annuaire", icon: BookOpen },
+  { href: "/armada", label: "Mon Armada", icon: Users },
   { href: "/messages", label: "Messages", icon: MessageSquare },
   { href: "/carte", label: "Carte", icon: Map },
 ];
