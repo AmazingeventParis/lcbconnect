@@ -119,6 +119,16 @@ export function useNotifications(userId: string | undefined) {
     fetchCount();
   }, [fetchCount]);
 
+  // Instant refresh when current tab sends a notification
+  useEffect(() => {
+    const handler = () => {
+      // Small delay to let the DB insert commit
+      setTimeout(fetchCount, 300);
+    };
+    window.addEventListener("lcb-notification-sent", handler);
+    return () => window.removeEventListener("lcb-notification-sent", handler);
+  }, [fetchCount]);
+
   // Polling fallback every 15s (in case Realtime misses events)
   useEffect(() => {
     const interval = setInterval(fetchCount, 15000);

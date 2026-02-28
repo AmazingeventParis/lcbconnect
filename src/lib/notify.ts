@@ -11,6 +11,10 @@ export async function sendNotification(payload: {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
     });
+    // Trigger immediate badge refresh on the sender's side
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(new Event("lcb-notification-sent"));
+    }
   } catch {
     // Silencieux — les notifications sont best-effort
   }
