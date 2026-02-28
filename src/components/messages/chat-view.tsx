@@ -18,8 +18,11 @@ import {
   MessageSquare,
   ImagePlus,
   X,
+  Pencil,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { hasMinRole, type Role } from "@/lib/constants";
+import { GroupSettingsDialog } from "./group-settings-dialog";
 import type { Profile, Message, Conversation } from "@/lib/supabase/types";
 
 interface ChatViewProps {
@@ -111,6 +114,10 @@ export function ChatView({
   const mentionRef = useRef<HTMLDivElement>(null);
   const [mentionedUsers, setMentionedUsers] = useState<Map<string, string>>(new Map());
 
+  // User role state
+  const [currentUserRole, setCurrentUserRole] = useState<Role>("membre");
+  const [showGroupSettings, setShowGroupSettings] = useState(false);
+
   // Image attachment state
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
@@ -145,6 +152,17 @@ export function ChatView({
 
       if (cancelled) return;
       setConversation(conv);
+
+      // Fetch current user role
+      const { data: myProfile } = await (supabase as any)
+        .from("lcb_profiles")
+        .select("role")
+        .eq("id", currentUserId)
+        .single();
+
+      if (!cancelled && myProfile) {
+        setCurrentUserRole(myProfile.role as Role);
+      }
 
       // Fetch members with profiles
       const { data: membersData } = await (supabase as any)
@@ -554,9 +572,18 @@ export function ChatView({
         </Button>
 
         {conversation?.is_group ? (
-          <div className="flex items-center justify-center size-10 rounded-full bg-[#1E3A5F]/10 text-[#1E3A5F] shrink-0">
-            {getGroupIcon(conversation.group_type)}
-          </div>
+          conversation.avatar_url ? (
+            <Avatar className="size-10 shrink-0">
+              <AvatarImage src={conversation.avatar_url} alt={displayName} />
+              <AvatarFallback className="text-[#1E3A5F] bg-[#1E3A5F]/10">
+                {getGroupIcon(conversation.group_type)}
+              </AvatarFallback>
+            </Avatar>
+          ) : (
+            <div className="flex items-center justify-center size-10 rounded-full bg-[#1E3A5F]/10 text-[#1E3A5F] shrink-0">
+              {getGroupIcon(conversation.group_type)}
+            </div>
+          )
         ) : (
           <Avatar className="size-10">
             {displayAvatar && (
@@ -574,6 +601,17 @@ export function ChatView({
             </p>
           )}
         </div>
+
+        {conversation?.is_group && hasMinRole(currentUserRole, "bureau") && (
+          <Button
+            variant="ghost"
+            size="sm"
+            className="shrink-0"
+            onClick={() => setShowGroupSettings(true)}
+          >
+            <Pencil className="size-4" />
+          </Button>
+        )}
       </div>
 
       {/* Messages area */}
@@ -759,6 +797,18 @@ export function ChatView({
           </Button>
         </div>
       </div>
+
+      {/* Group settings dialog */}
+      {conversation?.is_group && (
+        <GroupSettingsDialog
+          conversation={conversation}
+          open={showGroupSettings}
+          onOpenChange={setShowGroupSettings}
+          onUpdated={(updated) => {
+            setConversation((prev) => prev ? { ...prev, ...updated } : prev);
+          }}
+        />
+      )}
     </div>
   );
 }

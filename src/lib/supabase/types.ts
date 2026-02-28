@@ -576,6 +576,7 @@ export type Database = {
           name: string | null;
           is_group: boolean;
           group_type: string | null;
+          avatar_url: string | null;
           created_by: string;
           created_at: string;
           updated_at: string;
@@ -585,6 +586,7 @@ export type Database = {
           name?: string | null;
           is_group?: boolean;
           group_type?: string | null;
+          avatar_url?: string | null;
           created_by: string;
           created_at?: string;
           updated_at?: string;
@@ -594,6 +596,7 @@ export type Database = {
           name?: string | null;
           is_group?: boolean;
           group_type?: string | null;
+          avatar_url?: string | null;
           created_by?: string;
           created_at?: string;
           updated_at?: string;

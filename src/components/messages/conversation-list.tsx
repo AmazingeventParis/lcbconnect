@@ -363,9 +363,18 @@ export function ConversationList({
                 >
                   {/* Avatar */}
                   {conv.is_group ? (
-                    <div className="flex items-center justify-center size-12 rounded-full bg-[#1E3A5F]/10 text-[#1E3A5F] shrink-0">
-                      {getGroupIcon(conv.group_type)}
-                    </div>
+                    conv.avatar_url ? (
+                      <Avatar className="size-12 shrink-0">
+                        <AvatarImage src={conv.avatar_url} alt={displayName} />
+                        <AvatarFallback className="text-[#1E3A5F] bg-[#1E3A5F]/10">
+                          {getGroupIcon(conv.group_type)}
+                        </AvatarFallback>
+                      </Avatar>
+                    ) : (
+                      <div className="flex items-center justify-center size-12 rounded-full bg-[#1E3A5F]/10 text-[#1E3A5F] shrink-0">
+                        {getGroupIcon(conv.group_type)}
+                      </div>
+                    )
                   ) : (
                     <div className="relative shrink-0">
                       <Avatar className="size-12">

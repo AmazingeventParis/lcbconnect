@@ -306,6 +306,7 @@ CREATE TABLE lcb_conversations (
     name        text,
     is_group    boolean NOT NULL DEFAULT false,
     group_type  text CHECK (group_type IS NULL OR group_type IN ('ca', 'bureau', 'custom')),
+    avatar_url  text,
     created_by  uuid NOT NULL REFERENCES lcb_profiles (id) ON DELETE CASCADE,
     created_at  timestamptz NOT NULL DEFAULT now(),
     updated_at  timestamptz NOT NULL DEFAULT now()
