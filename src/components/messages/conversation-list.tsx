@@ -54,6 +54,11 @@ function formatRelativeTime(dateStr: string): string {
   });
 }
 
+// Strip @[Name](uuid) → @Name for display
+function stripMentionMarkup(text: string): string {
+  return text.replace(/@\[([^\]]+)\]\([^)]+\)/g, "@$1");
+}
+
 function getGroupIcon(groupType: string | null) {
   switch (groupType) {
     case "ca":
@@ -337,11 +342,14 @@ export function ConversationList({
                   new Date(lastMessage.created_at) > new Date(lastReadAt)) &&
                 lastMessage.sender_id !== currentUserId;
 
-              // Last message preview
+              // Last message preview (strip @[Name](uuid) markup)
+              const rawContent = lastMessage
+                ? stripMentionMarkup(lastMessage.content)
+                : "";
               const preview = lastMessage
-                ? lastMessage.content.length > 50
-                  ? lastMessage.content.slice(0, 50) + "..."
-                  : lastMessage.content
+                ? rawContent.length > 50
+                  ? rawContent.slice(0, 50) + "..."
+                  : rawContent
                 : "Pas encore de message";
 
               const timestamp = lastMessage
