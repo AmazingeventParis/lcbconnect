@@ -15,6 +15,7 @@ import {
   Check,
   X,
   Loader2,
+  Trash2,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useForm } from "react-hook-form";
@@ -133,6 +134,7 @@ export function DirectoryDetail({ entryId, profile }: DirectoryDetailProps) {
   const [reviews, setReviews] = useState<ReviewWithAuthor[]>([]);
   const [loading, setLoading] = useState(true);
   const [approving, setApproving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [submittingReview, setSubmittingReview] = useState(false);
   const [starValue, setStarValue] = useState(0);
   const [hasReviewed, setHasReviewed] = useState(false);
@@ -229,6 +231,33 @@ export function DirectoryDetail({ entryId, profile }: DirectoryDetailProps) {
     }
 
     setApproving(false);
+  }
+
+  async function handleDelete() {
+    if (!entry) return;
+    if (!confirm("Supprimer définitivement cette fiche et tous ses avis ?")) return;
+
+    setDeleting(true);
+
+    // Delete reviews first
+    await (supabase as any)
+      .from("lcb_directory_reviews")
+      .delete()
+      .eq("directory_id", entry.id);
+
+    const { error } = await (supabase as any)
+      .from("lcb_directory")
+      .delete()
+      .eq("id", entry.id);
+
+    if (error) {
+      toast.error("Erreur lors de la suppression.");
+    } else {
+      toast.success("Fiche supprimée.");
+      router.push("/directory");
+    }
+
+    setDeleting(false);
   }
 
   async function onSubmitReview(values: DirectoryReviewValues) {
@@ -336,6 +365,21 @@ export function DirectoryDetail({ entryId, profile }: DirectoryDetailProps) {
                 )}
               </div>
             </div>
+            {isAdmin && (
+              <Button
+                variant="destructive"
+                size="sm"
+                onClick={handleDelete}
+                disabled={deleting}
+              >
+                {deleting ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Trash2 className="h-4 w-4" />
+                )}
+                Supprimer
+              </Button>
+            )}
           </div>
 
           {/* Rating */}
