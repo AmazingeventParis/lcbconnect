@@ -22,6 +22,7 @@ export type Database = {
           phone: string | null;
           bio: string | null;
           avatar_url: string | null;
+          notification_prefs: Json | null;
           created_at: string;
           updated_at: string;
         };
@@ -37,6 +38,7 @@ export type Database = {
           phone?: string | null;
           bio?: string | null;
           avatar_url?: string | null;
+          notification_prefs?: Json | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -52,6 +54,7 @@ export type Database = {
           phone?: string | null;
           bio?: string | null;
           avatar_url?: string | null;
+          notification_prefs?: Json | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -808,3 +811,15 @@ export type NotificationInsert =
   Database["public"]["Tables"]["lcb_notifications"]["Insert"];
 export type NotificationUpdate =
   Database["public"]["Tables"]["lcb_notifications"]["Update"];
+
+export type NotificationPrefs = {
+  likes?: boolean;
+  comments?: boolean;
+  replies?: boolean;
+  messages?: boolean;
+  mentions?: boolean;
+  events?: boolean;
+  documents?: boolean;
+  directory?: boolean;
+  reports?: boolean;
+};

@@ -1,6 +1,8 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { ProfileForm } from "@/components/profile/profile-form";
+import { NotificationSettings } from "@/components/settings/notification-settings";
+import type { NotificationPrefs } from "@/lib/supabase/types";
 
 export default async function SettingsPage() {
   const supabase = await createClient();
@@ -13,7 +15,8 @@ export default async function SettingsPage() {
     redirect("/login");
   }
 
-  const { data: profile } = await supabase
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data: profile } = await (supabase as any)
     .from("lcb_profiles")
     .select("*")
     .eq("id", user.id)
@@ -31,6 +34,14 @@ export default async function SettingsPage() {
       </p>
 
       <ProfileForm profile={profile} />
+
+      <div className="mt-12 border-t border-border pt-8">
+        <NotificationSettings
+          profileId={profile.id}
+          initialPrefs={(profile.notification_prefs as NotificationPrefs) ?? null}
+          role={profile.role}
+        />
+      </div>
     </div>
   );
 }

@@ -22,6 +22,7 @@ CREATE TABLE lcb_profiles (
     phone       text,
     bio         text,
     avatar_url  text,
+    notification_prefs jsonb DEFAULT null,
     created_at  timestamptz NOT NULL DEFAULT now(),
     updated_at  timestamptz NOT NULL DEFAULT now()
 );

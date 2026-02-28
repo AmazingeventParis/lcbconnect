@@ -317,12 +317,54 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Bulk insert
+    // Filter out notifications for users who disabled this type
+    let filtered = notifications;
     if (notifications.length > 0) {
-      await service.from("lcb_notifications").insert(notifications);
+      const userIds = [...new Set(notifications.map((n) => n.user_id))];
+      const { data: profiles } = await service
+        .from("lcb_profiles")
+        .select("id, notification_prefs")
+        .in("id", userIds);
+
+      if (profiles) {
+        const prefsMap = new Map<string, Record<string, boolean>>();
+        for (const p of profiles) {
+          if (p.notification_prefs && typeof p.notification_prefs === "object") {
+            prefsMap.set(p.id, p.notification_prefs as Record<string, boolean>);
+          }
+        }
+
+        const TYPE_TO_PREF: Record<string, string> = {
+          like: "likes",
+          comment: "comments",
+          reply: "replies",
+          message: "messages",
+          mention: "mentions",
+          event: "events",
+          document: "documents",
+          directory: "directory",
+          report: "reports",
+          admin: "reports",
+          complaint: "reports",
+          service: "reports",
+        };
+
+        filtered = notifications.filter((n) => {
+          const userPrefs = prefsMap.get(n.user_id);
+          if (!userPrefs) return true; // No prefs = all enabled
+          const prefKey = TYPE_TO_PREF[n.type];
+          if (!prefKey) return true;
+          return userPrefs[prefKey] !== false; // undefined or true = enabled
+        });
+      }
     }
 
-    return NextResponse.json({ ok: true, count: notifications.length });
+    // Bulk insert
+    if (filtered.length > 0) {
+      await service.from("lcb_notifications").insert(filtered);
+    }
+
+    return NextResponse.json({ ok: true, count: filtered.length });
   } catch {
     return NextResponse.json(
       { error: "Erreur interne" },
