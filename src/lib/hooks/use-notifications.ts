@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 
 export type SectionCounts = {
@@ -71,15 +71,18 @@ function computeSectionCounts(types: string[]): SectionCounts {
 export function useNotifications(userId: string | undefined) {
   const [unreadCount, setUnreadCount] = useState(0);
   const [sectionCounts, setSectionCounts] = useState<SectionCounts>(EMPTY_COUNTS);
-  const supabase = createClient();
+  const supabase = useMemo(() => createClient(), []);
+  const userIdRef = useRef(userId);
+  userIdRef.current = userId;
 
   const fetchCount = useCallback(async () => {
-    if (!userId) return;
+    const uid = userIdRef.current;
+    if (!uid) return;
 
     const { data, error } = await (supabase as any)
       .from("lcb_notifications")
       .select("type")
-      .eq("user_id", userId)
+      .eq("user_id", uid)
       .eq("is_read", false);
 
     if (!error && data) {
@@ -88,30 +91,38 @@ export function useNotifications(userId: string | undefined) {
       setUnreadCount(counts.total);
       setSectionCounts(counts);
     }
-  }, [supabase, userId]);
+  }, [supabase]);
 
   // Mark all notifications for a given section as read
   const markSectionRead = useCallback(
     async (section: keyof SectionCounts) => {
-      if (!userId || section === "total") return;
+      const uid = userIdRef.current;
+      if (!uid || section === "total") return;
       const types = SECTION_TYPES[section];
       if (!types || types.length === 0) return;
 
       await (supabase as any)
         .from("lcb_notifications")
         .update({ is_read: true })
-        .eq("user_id", userId)
+        .eq("user_id", uid)
         .eq("is_read", false)
         .in("type", types);
 
       // Refresh counts after marking
       fetchCount();
     },
-    [supabase, userId, fetchCount]
+    [supabase, fetchCount]
   );
 
+  // Initial fetch
   useEffect(() => {
     fetchCount();
+  }, [fetchCount]);
+
+  // Polling fallback every 15s (in case Realtime misses events)
+  useEffect(() => {
+    const interval = setInterval(fetchCount, 15000);
+    return () => clearInterval(interval);
   }, [fetchCount]);
 
   // Realtime subscription for new notifications
@@ -119,9 +130,9 @@ export function useNotifications(userId: string | undefined) {
     if (!userId) return;
 
     const channel = supabase
-      .channel("notifications-count")
+      .channel(`notifications-count-${userId}`)
       .on(
-        "postgres_changes",
+        "postgres_changes" as any,
         {
           event: "INSERT",
           schema: "public",
@@ -133,7 +144,7 @@ export function useNotifications(userId: string | undefined) {
         }
       )
       .on(
-        "postgres_changes",
+        "postgres_changes" as any,
         {
           event: "UPDATE",
           schema: "public",
