@@ -540,7 +540,7 @@ export function MembersManagement({ profile }: MembersManagementProps) {
                                       member.role}
                                   </Badge>
                                 </SelectTrigger>
-                                <SelectContent>
+                                <SelectContent position="popper" className="z-[100]">
                                   {Object.entries(ROLES).map(([key, val]) => (
                                     <SelectItem key={key} value={key}>
                                       {val.label}
@@ -567,7 +567,7 @@ export function MembersManagement({ profile }: MembersManagementProps) {
                                       member.role}
                                   </Badge>
                                 </SelectTrigger>
-                                <SelectContent>
+                                <SelectContent position="popper" className="z-[100]">
                                   {Object.entries(ROLES).map(([key, val]) => (
                                     <SelectItem key={key} value={key}>
                                       {val.label}
