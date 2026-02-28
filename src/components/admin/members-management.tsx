@@ -130,6 +130,9 @@ export function MembersManagement({ profile }: MembersManagementProps) {
   // Delete confirmation dialog
   const [deleteTarget, setDeleteTarget] = useState<Profile | null>(null);
 
+  // Pending role assignment (before approval)
+  const [pendingRoles, setPendingRoles] = useState<Record<string, string>>({});
+
   const isBureau = profile.role === "bureau";
 
   const fetchMembers = useCallback(async () => {
@@ -517,33 +520,62 @@ export function MembersManagement({ profile }: MembersManagementProps) {
 
                         {/* Rôle */}
                         <TableCell>
-                          {isBureau && !isSelf ? (
-                            <Select
-                              value={member.role}
-                              onValueChange={(val) =>
-                                handleAction(member.id, "change_role", val)
-                              }
-                              disabled={isLoading}
-                            >
-                              <SelectTrigger className="h-7 w-[120px] text-xs">
-                                <Badge
-                                  className={cn(
-                                    "text-xs",
-                                    ROLE_COLORS[member.role]
-                                  )}
-                                >
-                                  {ROLES[member.role as Role]?.label ??
-                                    member.role}
-                                </Badge>
-                              </SelectTrigger>
-                              <SelectContent>
-                                {Object.entries(ROLES).map(([key, val]) => (
-                                  <SelectItem key={key} value={key}>
-                                    {val.label}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
+                          {!isSelf ? (
+                            member.status === "pending" ? (
+                              <Select
+                                value={pendingRoles[member.id] ?? member.role}
+                                onValueChange={(val) =>
+                                  setPendingRoles((prev) => ({ ...prev, [member.id]: val }))
+                                }
+                                disabled={isLoading}
+                              >
+                                <SelectTrigger className="h-7 w-[120px] text-xs">
+                                  <Badge
+                                    className={cn(
+                                      "text-xs",
+                                      ROLE_COLORS[pendingRoles[member.id] ?? member.role]
+                                    )}
+                                  >
+                                    {ROLES[(pendingRoles[member.id] ?? member.role) as Role]?.label ??
+                                      member.role}
+                                  </Badge>
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {Object.entries(ROLES).map(([key, val]) => (
+                                    <SelectItem key={key} value={key}>
+                                      {val.label}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            ) : (
+                              <Select
+                                value={member.role}
+                                onValueChange={(val) =>
+                                  handleAction(member.id, "change_role", val)
+                                }
+                                disabled={isLoading}
+                              >
+                                <SelectTrigger className="h-7 w-[120px] text-xs">
+                                  <Badge
+                                    className={cn(
+                                      "text-xs",
+                                      ROLE_COLORS[member.role]
+                                    )}
+                                  >
+                                    {ROLES[member.role as Role]?.label ??
+                                      member.role}
+                                  </Badge>
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {Object.entries(ROLES).map(([key, val]) => (
+                                    <SelectItem key={key} value={key}>
+                                      {val.label}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            )
                           ) : (
                             <Badge
                               className={cn(
@@ -600,7 +632,7 @@ export function MembersManagement({ profile }: MembersManagementProps) {
                                 size="xs"
                                 className="text-green-600 hover:text-green-700 hover:bg-green-50"
                                 onClick={() =>
-                                  handleAction(member.id, "approve")
+                                  handleAction(member.id, "approve", pendingRoles[member.id])
                                 }
                               >
                                 <Check className="size-3.5" />

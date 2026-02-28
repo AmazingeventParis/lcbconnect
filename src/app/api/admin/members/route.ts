@@ -53,9 +53,22 @@ export async function PATCH(request: NextRequest) {
 
     switch (action) {
       case "approve": {
+        const updates: Record<string, unknown> = {
+          status: "approved",
+          updated_at: new Date().toISOString(),
+        };
+
+        // Optional role assignment on approval
+        if (value) {
+          const validRoles: Role[] = ["membre", "ca", "bureau"];
+          if (validRoles.includes(value as Role)) {
+            updates.role = value;
+          }
+        }
+
         const { error } = await (serviceClient as any)
           .from("lcb_profiles")
-          .update({ status: "approved", updated_at: new Date().toISOString() })
+          .update(updates)
           .eq("id", memberId);
 
         if (error) {
@@ -131,10 +144,10 @@ export async function PATCH(request: NextRequest) {
       }
 
       case "change_role": {
-        // Only Bureau can change roles
-        if (callerProfile.role !== "bureau") {
+        // CA and Bureau can change roles
+        if (!hasMinRole(callerProfile.role, "ca")) {
           return NextResponse.json(
-            { error: "Seul le Bureau peut modifier les rôles." },
+            { error: "Rôle CA ou Bureau requis pour modifier les rôles." },
             { status: 403 }
           );
         }
