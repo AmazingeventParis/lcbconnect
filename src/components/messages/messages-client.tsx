@@ -1,6 +1,9 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { ConversationList } from "./conversation-list";
 import { ChatView } from "./chat-view";
@@ -14,11 +17,82 @@ interface MessagesClientProps {
 }
 
 export function MessagesClient({ profile }: MessagesClientProps) {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const supabase = createClient();
+  const dmHandled = useRef(false);
+
   const [selectedConversationId, setSelectedConversationId] = useState<
     string | null
   >(null);
   const [showNewDialog, setShowNewDialog] = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+
+  // Handle ?dm={userId} — auto-create/open a 1:1 conversation
+  useEffect(() => {
+    const dmUserId = searchParams.get("dm");
+    if (!dmUserId || dmUserId === profile.id || dmHandled.current) return;
+    dmHandled.current = true;
+
+    (async () => {
+      try {
+        // Find existing 1:1 conversation
+        const { data: myConvs } = await (supabase as any)
+          .from("lcb_conversation_members")
+          .select("conversation_id")
+          .eq("user_id", profile.id);
+
+        const myConvIds = (myConvs ?? []).map((m: any) => m.conversation_id);
+
+        if (myConvIds.length > 0) {
+          const { data: theirConvs } = await (supabase as any)
+            .from("lcb_conversation_members")
+            .select("conversation_id")
+            .eq("user_id", dmUserId)
+            .in("conversation_id", myConvIds);
+
+          const sharedIds = (theirConvs ?? []).map((m: any) => m.conversation_id);
+
+          if (sharedIds.length > 0) {
+            const { data: existing } = await (supabase as any)
+              .from("lcb_conversations")
+              .select("id")
+              .in("id", sharedIds)
+              .eq("is_group", false);
+
+            if (existing && existing.length > 0) {
+              setSelectedConversationId(existing[0].id);
+              router.replace("/messages", { scroll: false });
+              return;
+            }
+          }
+        }
+
+        // Create new 1:1 conversation
+        const { data: conv, error: convError } = await (supabase as any)
+          .from("lcb_conversations")
+          .insert({ is_group: false, created_by: profile.id })
+          .select()
+          .single();
+
+        if (convError) throw convError;
+
+        await (supabase as any)
+          .from("lcb_conversation_members")
+          .insert([
+            { conversation_id: conv.id, user_id: profile.id },
+            { conversation_id: conv.id, user_id: dmUserId },
+          ]);
+
+        setSelectedConversationId(conv.id);
+        setRefreshTrigger((prev) => prev + 1);
+        router.replace("/messages", { scroll: false });
+      } catch (err) {
+        console.error("DM auto-open error:", err);
+        toast.error("Erreur lors de l'ouverture de la conversation");
+      }
+    })();
+  }, [searchParams, profile.id, supabase, router]);
 
   const handleConversationCreated = useCallback((conversationId: string) => {
     setSelectedConversationId(conversationId);

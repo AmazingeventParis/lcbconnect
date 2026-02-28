@@ -6,8 +6,6 @@ import {
   ArrowLeft,
   Ship,
   MapPin,
-  Mail,
-  Phone,
   MessageSquare,
 } from "lucide-react";
 
@@ -166,36 +164,10 @@ export function MemberProfile({ profile, currentUserId }: MemberProfileProps) {
                 )}
               </div>
 
-              {/* Contact info */}
-              <div className="mt-3 space-y-1">
-                {profile.email && (
-                  <div className="flex items-center gap-2 text-sm">
-                    <Mail className="size-4 text-muted-foreground shrink-0" />
-                    <a
-                      href={`mailto:${profile.email}`}
-                      className="text-[#1E3A5F] hover:underline"
-                    >
-                      {profile.email}
-                    </a>
-                  </div>
-                )}
-                {profile.phone && (
-                  <div className="flex items-center gap-2 text-sm">
-                    <Phone className="size-4 text-muted-foreground shrink-0" />
-                    <a
-                      href={`tel:${profile.phone}`}
-                      className="text-[#1E3A5F] hover:underline"
-                    >
-                      {profile.phone}
-                    </a>
-                  </div>
-                )}
-              </div>
-
               {/* Message button */}
               {!isOwnProfile && (
                 <Button asChild className="mt-4" size="sm">
-                  <Link href="/messages">
+                  <Link href={`/messages?dm=${profile.id}`}>
                     <MessageSquare className="size-4" />
                     Envoyer un message
                   </Link>
