@@ -48,6 +48,7 @@ function computeSectionCounts(types: string[]): SectionCounts {
       case "admin":
       case "complaint":
       case "service":
+      case "report":
         counts.admin++;
         break;
     }

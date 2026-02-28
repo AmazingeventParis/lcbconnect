@@ -342,16 +342,34 @@ CREATE POLICY "directory_reviews_insert_approved"
     );
 
 -- ============================================================================
+-- Helper: Check conversation membership (SECURITY DEFINER to avoid
+-- infinite recursion when policies on lcb_conversation_members
+-- reference the same table in subqueries)
+-- ============================================================================
+CREATE OR REPLACE FUNCTION lcb_is_conversation_member(conv_id uuid, uid uuid)
+RETURNS boolean
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+AS $$
+    SELECT EXISTS (
+        SELECT 1 FROM lcb_conversation_members
+        WHERE conversation_id = conv_id AND user_id = uid
+    );
+$$;
+
+-- ============================================================================
 -- 14. lcb_conversations policies
 -- ============================================================================
 CREATE POLICY "conversations_select_member"
     ON lcb_conversations FOR SELECT
+    USING (lcb_is_conversation_member(id, auth.uid()));
+
+CREATE POLICY "conversations_select_channels"
+    ON lcb_conversations FOR SELECT
     USING (
-        EXISTS (
-            SELECT 1 FROM lcb_conversation_members
-            WHERE conversation_id = lcb_conversations.id
-            AND user_id = auth.uid()
-        )
+        group_type IN ('channel', 'channel_ca')
+        AND lcb_is_approved(auth.uid())
     );
 
 CREATE POLICY "conversations_insert_approved"
@@ -363,13 +381,7 @@ CREATE POLICY "conversations_insert_approved"
 
 CREATE POLICY "conversations_update_member"
     ON lcb_conversations FOR UPDATE
-    USING (
-        EXISTS (
-            SELECT 1 FROM lcb_conversation_members
-            WHERE conversation_id = lcb_conversations.id
-            AND user_id = auth.uid()
-        )
-    );
+    USING (lcb_is_conversation_member(id, auth.uid()));
 
 -- ============================================================================
 -- 15. lcb_conversation_members policies
@@ -380,13 +392,7 @@ CREATE POLICY "conversation_members_select_own"
 
 CREATE POLICY "conversation_members_select_same_conv"
     ON lcb_conversation_members FOR SELECT
-    USING (
-        EXISTS (
-            SELECT 1 FROM lcb_conversation_members cm
-            WHERE cm.conversation_id = lcb_conversation_members.conversation_id
-            AND cm.user_id = auth.uid()
-        )
-    );
+    USING (lcb_is_conversation_member(conversation_id, auth.uid()));
 
 CREATE POLICY "conversation_members_insert_approved"
     ON lcb_conversation_members FOR INSERT
@@ -396,28 +402,22 @@ CREATE POLICY "conversation_members_update_own"
     ON lcb_conversation_members FOR UPDATE
     USING (user_id = auth.uid());
 
+CREATE POLICY "conversation_members_delete_own"
+    ON lcb_conversation_members FOR DELETE
+    USING (user_id = auth.uid());
+
 -- ============================================================================
 -- 16. lcb_messages policies
 -- ============================================================================
 CREATE POLICY "messages_select_member"
     ON lcb_messages FOR SELECT
-    USING (
-        EXISTS (
-            SELECT 1 FROM lcb_conversation_members
-            WHERE conversation_id = lcb_messages.conversation_id
-            AND user_id = auth.uid()
-        )
-    );
+    USING (lcb_is_conversation_member(conversation_id, auth.uid()));
 
 CREATE POLICY "messages_insert_member"
     ON lcb_messages FOR INSERT
     WITH CHECK (
         sender_id = auth.uid()
-        AND EXISTS (
-            SELECT 1 FROM lcb_conversation_members
-            WHERE conversation_id = lcb_messages.conversation_id
-            AND user_id = auth.uid()
-        )
+        AND lcb_is_conversation_member(conversation_id, auth.uid())
     );
 
 -- ============================================================================
