@@ -1,5 +1,6 @@
 import { redirect, notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { hasMinRole } from "@/lib/constants";
 import type { PostWithAuthor } from "@/lib/types";
 import type { Post, Profile } from "@/lib/supabase/types";
 import { PostDetail } from "@/components/feed/post-detail";
@@ -48,6 +49,11 @@ export default async function PostDetailPage({ params }: PostDetailPageProps) {
   }
 
   const postData = postRaw as unknown as PostWithAuthorRaw;
+
+  // Hidden posts only visible to CA/bureau
+  if (postData.is_hidden && !hasMinRole(profile.role, "ca")) {
+    notFound();
+  }
 
   // Check if user has liked this post
   const { data: likeData } = await supabase

@@ -7,13 +7,14 @@ import { fr } from "date-fns/locale/fr";
 import {
   HeartIcon,
   MessageCircleIcon,
-  ShareIcon,
+  FlagIcon,
   PinIcon,
   FileTextIcon,
   WrenchIcon,
   AlertTriangleIcon,
   ShieldIcon,
   AnchorIcon,
+  Loader2,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -28,6 +29,15 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { PhotoGallery } from "@/components/feed/photo-gallery";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
 
 interface PostCardProps {
   post: PostWithAuthor;
@@ -136,20 +146,50 @@ export function PostCard({ post, currentUserId, onLikeChange }: PostCardProps) {
     [liked, likesCount, likeLoading, post.id, currentUserId, supabase, onLikeChange]
   );
 
-  const handleShare = useCallback(
-    async (e: React.MouseEvent) => {
-      e.preventDefault();
-      e.stopPropagation();
+  const [reportOpen, setReportOpen] = useState(false);
+  const [reportReason, setReportReason] = useState("");
+  const [reportLoading, setReportLoading] = useState(false);
+
+  const handleReport = useCallback(
+    async () => {
+      if (!reportReason.trim()) {
+        toast.error("Veuillez indiquer un motif de signalement.");
+        return;
+      }
+
+      setReportLoading(true);
       try {
-        await navigator.clipboard.writeText(
-          `${window.location.origin}/feed/${post.id}`
-        );
-        toast.success("Lien copié dans le presse-papier");
+        const { error } = await (supabase as any)
+          .from("lcb_reports")
+          .insert({
+            reporter_id: currentUserId,
+            post_id: post.id,
+            reason: reportReason.trim(),
+            status: "pending",
+          });
+
+        if (error) {
+          toast.error("Erreur lors du signalement.");
+          return;
+        }
+
+        sendNotification({
+          type: "report",
+          actorId: currentUserId,
+          targetType: "post",
+          targetId: post.id,
+        });
+
+        toast.success("Publication signalée. Le bureau sera notifié.");
+        setReportOpen(false);
+        setReportReason("");
       } catch {
-        toast.error("Impossible de copier le lien");
+        toast.error("Une erreur inattendue est survenue.");
+      } finally {
+        setReportLoading(false);
       }
     },
-    [post.id]
+    [reportReason, supabase, currentUserId, post.id]
   );
 
   const content = post.content;
@@ -286,11 +326,65 @@ export function PostCard({ post, currentUserId, onLikeChange }: PostCardProps) {
           variant="ghost"
           size="sm"
           className="flex-1 gap-1.5 text-muted-foreground"
-          onClick={handleShare}
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            setReportOpen(true);
+          }}
         >
-          <ShareIcon className="size-4" />
+          <FlagIcon className="size-4" />
+          <span className="text-xs">Signaler</span>
         </Button>
       </div>
+
+      {/* Report dialog */}
+      <Dialog
+        open={reportOpen}
+        onOpenChange={(open) => {
+          if (!open) {
+            setReportReason("");
+          }
+          setReportOpen(open);
+        }}
+      >
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Signaler cette publication</DialogTitle>
+            <DialogDescription>
+              Décrivez pourquoi cette publication est inappropriée. Le bureau
+              sera notifié et pourra prendre des mesures.
+            </DialogDescription>
+          </DialogHeader>
+          <Textarea
+            placeholder="Motif du signalement..."
+            value={reportReason}
+            onChange={(e) => setReportReason(e.target.value)}
+            rows={3}
+          />
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setReportOpen(false)}
+            >
+              Annuler
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleReport}
+              disabled={reportLoading || !reportReason.trim()}
+            >
+              {reportLoading ? (
+                <>
+                  <Loader2 className="size-4 animate-spin" />
+                  Envoi...
+                </>
+              ) : (
+                "Signaler"
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 }

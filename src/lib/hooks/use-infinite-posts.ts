@@ -41,6 +41,7 @@ export function useInfinitePosts({
           .select(
             "*, author:lcb_profiles!author_id(id, full_name, avatar_url, role)"
           )
+          .eq("is_hidden", false)
           .order("is_pinned", { ascending: false })
           .order("created_at", { ascending: false })
           .limit(PAGE_SIZE);

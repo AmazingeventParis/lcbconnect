@@ -54,6 +54,7 @@ export function MemberProfile({ profile, currentUserId }: MemberProfileProps) {
       .from("lcb_posts")
       .select("*, author:lcb_profiles!lcb_posts_author_id_fkey(id, full_name, avatar_url, role)")
       .eq("author_id", profile.id)
+      .eq("is_hidden", false)
       .order("created_at", { ascending: false })
       .limit(20);
 

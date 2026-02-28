@@ -12,6 +12,8 @@ import {
   XCircle,
   Loader2,
   Eye,
+  EyeOff,
+  Trash2,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -163,6 +165,53 @@ export function ReportsManagement({ profile }: ReportsManagementProps) {
           ? "Signalement marqué comme examiné."
           : "Signalement classé sans suite."
       );
+      fetchReports();
+    }
+
+    setActionLoading(null);
+  }
+
+  async function handleHidePost(reportId: string, postId: string) {
+    setActionLoading(reportId);
+
+    const res = await fetch("/api/admin/posts", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ postId, action: "hide" }),
+    });
+
+    if (!res.ok) {
+      toast.error("Erreur lors de la suspension du post.");
+    } else {
+      toast.success("Publication suspendue (masquée du fil).");
+      // Also mark report as reviewed
+      await (supabase as any)
+        .from("lcb_reports")
+        .update({ status: "reviewed", reviewed_by: profile.id })
+        .eq("id", reportId);
+      fetchReports();
+    }
+
+    setActionLoading(null);
+  }
+
+  async function handleDeletePost(reportId: string, postId: string) {
+    if (!confirm("Supprimer définitivement cette publication et toutes ses données associées ?")) {
+      return;
+    }
+
+    setActionLoading(reportId);
+
+    const res = await fetch("/api/admin/posts", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ postId }),
+    });
+
+    if (!res.ok) {
+      toast.error("Erreur lors de la suppression du post.");
+    } else {
+      toast.success("Publication supprimée définitivement.");
       fetchReports();
     }
 
@@ -457,6 +506,40 @@ export function ReportsManagement({ profile }: ReportsManagementProps) {
                                     <XCircle className="size-3.5" />
                                     Classer
                                   </Button>
+                                  {report.post_id && (
+                                    <>
+                                      <Button
+                                        variant="outline"
+                                        size="xs"
+                                        className="text-orange-600 hover:text-orange-700 hover:bg-orange-50"
+                                        onClick={() =>
+                                          handleHidePost(
+                                            report.id,
+                                            report.post_id!
+                                          )
+                                        }
+                                        title="Suspendre (masquer du fil)"
+                                      >
+                                        <EyeOff className="size-3.5" />
+                                        Suspendre
+                                      </Button>
+                                      <Button
+                                        variant="outline"
+                                        size="xs"
+                                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                        onClick={() =>
+                                          handleDeletePost(
+                                            report.id,
+                                            report.post_id!
+                                          )
+                                        }
+                                        title="Supprimer définitivement"
+                                      >
+                                        <Trash2 className="size-3.5" />
+                                        Supprimer
+                                      </Button>
+                                    </>
+                                  )}
                                 </>
                               )}
 

@@ -71,6 +71,7 @@ export type Database = {
           content: string;
           photos: string[];
           is_pinned: boolean;
+          is_hidden: boolean;
           likes_count: number;
           comments_count: number;
           linked_service_id: string | null;
@@ -92,6 +93,7 @@ export type Database = {
           content: string;
           photos?: string[];
           is_pinned?: boolean;
+          is_hidden?: boolean;
           likes_count?: number;
           comments_count?: number;
           linked_service_id?: string | null;
@@ -113,6 +115,7 @@ export type Database = {
           content?: string;
           photos?: string[];
           is_pinned?: boolean;
+          is_hidden?: boolean;
           likes_count?: number;
           comments_count?: number;
           linked_service_id?: string | null;

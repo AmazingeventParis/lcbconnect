@@ -20,6 +20,7 @@ const VALID_TYPES = [
   "admin",
   "document",
   "directory",
+  "report",
 ];
 
 export async function POST(request: NextRequest) {
@@ -274,6 +275,27 @@ export async function POST(request: NextRequest) {
           body: "",
           link: `/directory/${targetId}`,
         });
+      }
+    } else if (type === "report" && targetType === "post") {
+      // Report on post → notify all CA/bureau members
+      const { data: admins } = await service
+        .from("lcb_profiles")
+        .select("id")
+        .eq("status", "approved")
+        .in("role", ["ca", "bureau"]);
+
+      if (admins) {
+        for (const admin of admins) {
+          if (admin.id !== actorId) {
+            notifications.push({
+              user_id: admin.id,
+              type: "report",
+              title: `${actorName} a signalé une publication`,
+              body: "",
+              link: "/admin/reports",
+            });
+          }
+        }
       }
     }
 

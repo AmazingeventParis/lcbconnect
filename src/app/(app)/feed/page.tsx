@@ -29,12 +29,13 @@ export default async function FeedPage() {
     redirect("/login");
   }
 
-  // Fetch initial posts server-side
+  // Fetch initial posts server-side (exclude hidden)
   const { data: postsRaw } = await supabase
     .from("lcb_posts")
     .select(
       "*, author:lcb_profiles!author_id(id, full_name, avatar_url, role)"
     )
+    .eq("is_hidden", false)
     .order("is_pinned", { ascending: false })
     .order("created_at", { ascending: false })
     .limit(10);
