@@ -106,7 +106,7 @@ export function MessagesClient({ profile }: MessagesClientProps) {
   }, []);
 
   return (
-    <div className="flex h-[calc(100vh-64px)] md:h-[calc(100vh-64px)]">
+    <div className="flex h-[calc(100dvh-128px)] md:h-[calc(100dvh-64px)]">
       {/* Left panel: Conversation list */}
       <div
         className={cn(

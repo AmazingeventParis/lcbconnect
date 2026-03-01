@@ -528,7 +528,7 @@ export function ChatView({
 
     // Auto-resize textarea
     e.target.style.height = "auto";
-    e.target.style.height = `${Math.min(e.target.scrollHeight, 120)}px`;
+    e.target.style.height = `${Math.min(e.target.scrollHeight, 80)}px`;
 
     // Emit typing broadcast (throttled: max once per second)
     if (channelRef.current && currentUserName) {
@@ -803,7 +803,7 @@ export function ChatView({
       )}
 
       {/* Input area */}
-      <div className={cn("bg-white p-3 shrink-0", typingUsers.size === 0 && "border-t")}>
+      <div className={cn("bg-white px-2 py-1.5 md:p-3 shrink-0", typingUsers.size === 0 && "border-t")}>
         {/* Image preview */}
         {imagePreview && (
           <div className="mb-2 relative inline-block">
@@ -881,12 +881,12 @@ export function ChatView({
               value={inputValue}
               onChange={handleInputChange}
               onKeyDown={handleKeyDown}
-              placeholder="Écrivez un message... (@nom pour mentionner)"
+              placeholder="Votre message..."
               className={cn(
                 "w-full resize-none rounded-2xl border bg-gray-50 px-4 py-2.5 text-sm",
                 "focus:outline-none focus:ring-2 focus:ring-[#1E3A5F] focus:border-transparent",
                 "placeholder:text-muted-foreground",
-                "min-h-[40px] max-h-[120px]"
+                "min-h-[40px] max-h-[80px] overflow-hidden"
               )}
               rows={1}
             />
