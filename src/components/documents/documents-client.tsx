@@ -87,19 +87,19 @@ export function DocumentsClient({ profile }: DocumentsClientProps) {
   }
 
   return (
-    <div className="mx-auto max-w-4xl p-6">
+    <div className="mx-auto max-w-4xl p-4 md:p-6">
       {/* En-tete */}
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-2xl font-bold">Documents</h1>
-          <p className="text-muted-foreground mt-1">
+      <div className="flex items-start justify-between gap-3 mb-6">
+        <div className="min-w-0">
+          <h1 className="text-xl md:text-2xl font-bold">Documents</h1>
+          <p className="text-muted-foreground text-sm mt-1">
             Consultez les documents officiels de l&apos;association.
           </p>
         </div>
         {canUpload && (
-          <Button onClick={() => setDialogOpen(true)}>
+          <Button onClick={() => setDialogOpen(true)} size="sm" className="shrink-0">
             <Plus className="h-4 w-4" />
-            Ajouter un document
+            <span className="hidden sm:inline">Ajouter</span>
           </Button>
         )}
       </div>

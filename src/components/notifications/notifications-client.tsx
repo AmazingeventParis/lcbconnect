@@ -160,7 +160,7 @@ export function NotificationsClient({ profile }: NotificationsClientProps) {
 
   if (loading) {
     return (
-      <div className="p-6 space-y-6">
+      <div className="p-4 md:p-6 space-y-6">
         <Skeleton className="h-8 w-64" />
         <div className="space-y-3">
           {[1, 2, 3, 4, 5].map((i) => (
@@ -172,15 +172,15 @@ export function NotificationsClient({ profile }: NotificationsClientProps) {
   }
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-4 md:p-6 space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">Notifications</h1>
-          <p className="text-muted-foreground mt-1">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <h1 className="text-xl md:text-2xl font-bold">Notifications</h1>
+          <p className="text-muted-foreground text-sm mt-1">
             {unreadCount > 0
-              ? `${unreadCount} notification${unreadCount > 1 ? "s" : ""} non lue${unreadCount > 1 ? "s" : ""}`
-              : "Toutes vos notifications sont lues"}
+              ? `${unreadCount} non lue${unreadCount > 1 ? "s" : ""}`
+              : "Toutes lues"}
           </p>
         </div>
 
@@ -190,13 +190,15 @@ export function NotificationsClient({ profile }: NotificationsClientProps) {
             size="sm"
             onClick={handleMarkAllAsRead}
             disabled={markingAll}
+            className="shrink-0"
           >
             {markingAll ? (
               <Loader2 className="size-4 animate-spin" />
             ) : (
               <CheckCheck className="size-4" />
             )}
-            Tout marquer comme lu
+            <span className="hidden sm:inline">Tout marquer comme lu</span>
+            <span className="sm:hidden">Tout lu</span>
           </Button>
         )}
       </div>

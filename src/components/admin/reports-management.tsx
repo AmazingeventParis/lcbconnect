@@ -276,7 +276,7 @@ export function ReportsManagement({ profile }: ReportsManagementProps) {
 
   if (loading) {
     return (
-      <div className="p-6 space-y-6">
+      <div className="p-4 md:p-6 space-y-6">
         <Skeleton className="h-8 w-64" />
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
           {[1, 2, 3, 4].map((i) => (
@@ -292,7 +292,7 @@ export function ReportsManagement({ profile }: ReportsManagementProps) {
     <div className="p-6 space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold">Modération de contenu</h1>
+        <h1 className="text-xl md:text-2xl font-bold">Modération de contenu</h1>
         <p className="text-muted-foreground mt-1">
           Gérez les signalements de publications et de commentaires.
         </p>

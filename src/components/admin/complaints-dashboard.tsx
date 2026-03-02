@@ -270,7 +270,7 @@ export function ComplaintsDashboard({ profile }: ComplaintsDashboardProps) {
 
   if (loading) {
     return (
-      <div className="p-6 space-y-6">
+      <div className="p-4 md:p-6 space-y-6">
         <Skeleton className="h-8 w-64" />
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
           {[1, 2, 3, 4].map((i) => (
@@ -285,7 +285,7 @@ export function ComplaintsDashboard({ profile }: ComplaintsDashboardProps) {
   return (
     <div className="p-6 space-y-6">
       <div>
-        <h1 className="text-2xl font-bold">Tableau de bord des plaintes</h1>
+        <h1 className="text-xl md:text-2xl font-bold">Plaintes</h1>
         <p className="text-muted-foreground mt-1">
           Gérez et suivez toutes les plaintes des membres.
         </p>

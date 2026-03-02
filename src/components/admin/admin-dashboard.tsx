@@ -93,10 +93,10 @@ export function AdminDashboard({ profile, stats }: AdminDashboardProps) {
   const maxWeeklyPosts = Math.max(...weeklyPosts, 1);
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-4 md:p-6 space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold">Tableau de bord</h1>
+        <h1 className="text-xl md:text-2xl font-bold">Tableau de bord</h1>
         <p className="text-muted-foreground mt-1">
           Vue d&apos;ensemble de la communauté LCBconnect.
         </p>

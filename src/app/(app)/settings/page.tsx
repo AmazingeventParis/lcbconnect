@@ -27,9 +27,9 @@ export default async function SettingsPage() {
   }
 
   return (
-    <div className="mx-auto max-w-2xl p-6">
-      <h1 className="text-2xl font-bold">Réglages</h1>
-      <p className="text-muted-foreground mt-1 mb-8">
+    <div className="mx-auto max-w-2xl p-4 md:p-6">
+      <h1 className="text-xl md:text-2xl font-bold">Réglages</h1>
+      <p className="text-muted-foreground text-sm mt-1 mb-6 md:mb-8">
         Modifiez vos informations personnelles et votre avatar.
       </p>
 

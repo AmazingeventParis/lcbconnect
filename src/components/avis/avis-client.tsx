@@ -70,71 +70,69 @@ function NtsCard({ notice }: { notice: NtsNotice }) {
         {/* Clickable header */}
         <button
           onClick={() => setExpanded(!expanded)}
-          className="w-full text-left p-5 flex items-start gap-3"
+          className="w-full text-left p-4 md:p-5 flex items-start gap-3"
         >
-          <div className="flex items-center justify-center size-10 rounded-full bg-[#1E3A5F]/10 shrink-0 mt-0.5">
-            <Ship className="size-5 text-[#1E3A5F]" />
+          <div className="flex items-center justify-center size-9 md:size-10 rounded-full bg-[#1E3A5F]/10 shrink-0 mt-0.5">
+            <Ship className="size-4 md:size-5 text-[#1E3A5F]" />
           </div>
 
           <div className="flex-1 min-w-0">
             <div className="flex items-start justify-between gap-2">
-              <div className="flex-1 min-w-0">
-                <h3 className="font-semibold text-sm leading-snug">
-                  {notice.title}
-                </h3>
-                <div className="flex flex-wrap items-center gap-3 mt-1.5 text-xs text-muted-foreground">
-                  {notice.fairways.length > 0 && (
-                    <span className="flex items-center gap-1">
-                      <MapPin className="h-3 w-3" />
-                      {notice.fairways.join(", ")}
-                    </span>
-                  )}
-                  <span className="flex items-center gap-1">
-                    <Calendar className="h-3 w-3" />
-                    {format(new Date(notice.dateStart), "dd MMM", {
+              <h3 className="font-semibold text-sm leading-snug flex-1 min-w-0">
+                {notice.title}
+              </h3>
+              <ChevronDown
+                className={cn(
+                  "h-4 w-4 text-muted-foreground transition-transform shrink-0 mt-0.5",
+                  expanded && "rotate-180"
+                )}
+              />
+            </div>
+
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1.5 text-xs text-muted-foreground">
+              {notice.fairways.length > 0 && (
+                <span className="flex items-center gap-1">
+                  <MapPin className="h-3 w-3 shrink-0" />
+                  <span className="truncate">{notice.fairways.join(", ")}</span>
+                </span>
+              )}
+              <span className="flex items-center gap-1">
+                <Calendar className="h-3 w-3 shrink-0" />
+                {format(new Date(notice.dateStart), "dd MMM", {
+                  locale: fr,
+                })}
+                {notice.dateEnd && notice.dateEnd !== "9999-12-31" && (
+                  <>
+                    {" → "}
+                    {format(new Date(notice.dateEnd), "dd MMM yyyy", {
                       locale: fr,
                     })}
-                    {notice.dateEnd && notice.dateEnd !== "9999-12-31" && (
-                      <>
-                        {" "}
-                        &rarr;{" "}
-                        {format(new Date(notice.dateEnd), "dd MMM yyyy", {
-                          locale: fr,
-                        })}
-                      </>
-                    )}
-                  </span>
-                </div>
-              </div>
+                  </>
+                )}
+              </span>
+            </div>
 
-              <div className="flex items-center gap-2 shrink-0">
-                {notice.limitations.map((lim) => {
-                  const info = LIMITATION_LABELS[lim];
-                  if (!info) return null;
-                  return (
-                    <Badge key={lim} className={`text-xs ${info.color}`}>
-                      {isUrgent &&
-                      ["OBSTRU", "NOSERV", "CLOSED"].includes(lim) ? (
-                        <AlertTriangle className="h-3 w-3 mr-1" />
-                      ) : null}
-                      {info.label}
-                    </Badge>
-                  );
-                })}
-                <ChevronDown
-                  className={cn(
-                    "h-4 w-4 text-muted-foreground transition-transform",
-                    expanded && "rotate-180"
-                  )}
-                />
-              </div>
+            <div className="flex flex-wrap gap-1.5 mt-2">
+              {notice.limitations.map((lim) => {
+                const info = LIMITATION_LABELS[lim];
+                if (!info) return null;
+                return (
+                  <Badge key={lim} className={`text-[10px] md:text-xs ${info.color}`}>
+                    {isUrgent &&
+                    ["OBSTRU", "NOSERV", "CLOSED"].includes(lim) ? (
+                      <AlertTriangle className="h-3 w-3 mr-0.5" />
+                    ) : null}
+                    {info.label}
+                  </Badge>
+                );
+              })}
             </div>
           </div>
         </button>
 
         {/* Expandable details */}
         {expanded && (
-          <div className="px-5 pb-5 pt-0 border-t border-slate-100">
+          <div className="px-4 pb-4 md:px-5 md:pb-5 pt-0 border-t border-slate-100">
             <div className="pt-4 space-y-3">
               {/* Tooltip / description */}
               {notice.tooltip && notice.tooltip !== notice.title && (
@@ -279,11 +277,11 @@ export function AvisClient() {
         : ntsNotices;
 
   return (
-    <div className="mx-auto max-w-4xl p-6">
+    <div className="mx-auto max-w-4xl p-4 md:p-6">
       {/* En-tete */}
       <div className="mb-6">
-        <h1 className="text-2xl font-bold">Avis à la batellerie</h1>
-        <p className="text-muted-foreground mt-1">
+        <h1 className="text-xl md:text-2xl font-bold">Avis à la batellerie</h1>
+        <p className="text-muted-foreground text-sm mt-1">
           Avis officiels VNF pour les voies navigables d&apos;Île-de-France.
         </p>
       </div>

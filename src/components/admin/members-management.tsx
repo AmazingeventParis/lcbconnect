@@ -268,7 +268,7 @@ export function MembersManagement({ profile }: MembersManagementProps) {
 
   if (loading) {
     return (
-      <div className="p-6 space-y-6">
+      <div className="p-4 md:p-6 space-y-6">
         <Skeleton className="h-8 w-64" />
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
           {[1, 2, 3, 4].map((i) => (
@@ -281,10 +281,10 @@ export function MembersManagement({ profile }: MembersManagementProps) {
   }
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-4 md:p-6 space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold">Gestion des membres</h1>
+        <h1 className="text-xl md:text-2xl font-bold">Gestion des membres</h1>
         <p className="text-muted-foreground mt-1">
           Gérez les inscriptions, les rôles et les statuts des membres.
         </p>
@@ -350,8 +350,8 @@ export function MembersManagement({ profile }: MembersManagementProps) {
       </div>
 
       {/* Filters */}
-      <div className="flex flex-wrap gap-3">
-        <div className="relative flex-1 min-w-[200px] max-w-sm">
+      <div className="flex flex-col sm:flex-row flex-wrap gap-3">
+        <div className="relative flex-1 min-w-0">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
           <Input
             placeholder="Rechercher par nom ou email..."
@@ -361,32 +361,34 @@ export function MembersManagement({ profile }: MembersManagementProps) {
           />
         </div>
 
-        <Select value={roleFilter} onValueChange={setRoleFilter}>
-          <SelectTrigger className="w-[160px]">
-            <SelectValue placeholder="Rôle" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="tous">Tous les rôles</SelectItem>
-            {Object.entries(ROLES).map(([key, val]) => (
-              <SelectItem key={key} value={key}>
-                {val.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <div className="flex gap-3">
+          <Select value={roleFilter} onValueChange={setRoleFilter}>
+            <SelectTrigger className="w-full sm:w-[140px]">
+              <SelectValue placeholder="Rôle" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="tous">Tous les rôles</SelectItem>
+              {Object.entries(ROLES).map(([key, val]) => (
+                <SelectItem key={key} value={key}>
+                  {val.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
 
-        <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-[160px]">
-            <SelectValue placeholder="Statut" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="tous">Tous les statuts</SelectItem>
-            <SelectItem value="pending">En attente</SelectItem>
-            <SelectItem value="approved">Actif</SelectItem>
-            <SelectItem value="suspended">Suspendu</SelectItem>
-            <SelectItem value="rejected">Rejeté</SelectItem>
-          </SelectContent>
-        </Select>
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger className="w-full sm:w-[140px]">
+              <SelectValue placeholder="Statut" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="tous">Tous les statuts</SelectItem>
+              <SelectItem value="pending">En attente</SelectItem>
+              <SelectItem value="approved">Actif</SelectItem>
+              <SelectItem value="suspended">Suspendu</SelectItem>
+              <SelectItem value="rejected">Rejeté</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
       {/* Table */}
