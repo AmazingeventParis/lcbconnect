@@ -62,11 +62,12 @@ SECURITY DEFINER
 SET search_path = public
 AS $$
 BEGIN
-    INSERT INTO lcb_profiles (id, email, full_name)
+    INSERT INTO lcb_profiles (id, email, full_name, boat_name)
     VALUES (
         NEW.id,
         NEW.email,
-        COALESCE(NEW.raw_user_meta_data ->> 'full_name', '')
+        COALESCE(NEW.raw_user_meta_data ->> 'full_name', ''),
+        NULLIF(NEW.raw_user_meta_data ->> 'boat_name', '')
     );
     RETURN NEW;
 END;

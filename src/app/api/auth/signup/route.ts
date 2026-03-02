@@ -39,6 +39,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Ensure boat_name is saved on the profile (trigger may not copy it)
+    if (boat_name) {
+      await serviceClient
+        .from("lcb_profiles")
+        .update({ boat_name })
+        .eq("id", data.user.id);
+    }
+
     return NextResponse.json({ success: true, userId: data.user.id });
   } catch {
     return NextResponse.json(
