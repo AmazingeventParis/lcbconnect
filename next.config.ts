@@ -6,7 +6,7 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       {
         protocol: "https",
-        hostname: "supabase-api.swipego.app",
+        hostname: "supabasekong-gcowgws0cookk0cscg0ccss0.swipego.app",
       },
     ],
   },
