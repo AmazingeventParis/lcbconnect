@@ -10,14 +10,17 @@ Stack: **Next.js 16 App Router** + **Supabase self-hosted** + **Tailwind CSS** +
 - **Deployer** : `curl -s "http://217.182.89.133:8000/api/v1/deploy?uuid=jgkgcgwsosoos00ocogkwss8&force=true" -H "Authorization: Bearer 1|FNcssp3CipkrPNVSQyv3IboYwGsP8sjPskoBG3ux98e5a576"`
 - **Build** : `npm run build` puis `git push origin main` + deploy Coolify
 
-## Supabase
-- **API** : https://supabase-api.swipego.app
-- **Dashboard** : https://supabase.swipego.app
-- **Clefs dans** `.env.local` (PAS celles du CLAUDE.md global qui sont differentes)
-- **SQL direct** : `POST https://supabase-api.swipego.app/pg/query` avec service role key en apikey + Authorization
+## Supabase (Instance DEDIEE LCBconnect)
+- **IMPORTANT** : LCBconnect a sa propre instance Supabase, totalement independante du serveur general
+- **API** : https://supabasekong-gcowgws0cookk0cscg0ccss0.swipego.app
+- **Coolify Service UUID** : `gcowgws0cookk0cscg0ccss0`
+- **Dashboard login** : `Qm7HavW7jLh8av4V` / `Zwp9vhkLAhMa83seOZ2jLdCUNWwRKQWF`
+- **Clefs dans** `.env.local`
+- **SQL direct** : `POST https://supabasekong-gcowgws0cookk0cscg0ccss0.swipego.app/pg/query` avec service role key en apikey + Authorization
 - **Tables** : prefixe `lcb_` (lcb_profiles, lcb_posts, lcb_conversations, lcb_messages, etc.)
 - **RLS** : active sur toutes les tables, policies dans `sql/002-rls-policies.sql`
 - **Trigger** : `lcb_on_auth_user_created` cree automatiquement un lcb_profiles a l'inscription
+- **Isolation** : les utilisateurs inscrits sur LCBconnect n'existent QUE dans cette instance, les roles admin (bureau/ca) ne s'appliquent QU'a LCBconnect
 
 ## Structure
 ```
@@ -83,7 +86,7 @@ sql/                # Schema (001), RLS (002), triggers (003), storage (004)
 - Toasts : sonner
 
 ## Points d'attention
-- Les clefs Supabase dans `.env.local` sont DIFFERENTES de celles du CLAUDE.md global
+- LCBconnect utilise sa PROPRE instance Supabase (pas celle du serveur general)
 - Le port PostgreSQL n'est PAS expose (Docker interne) → utiliser l'endpoint `/pg/query` pour les migrations
 - `output: "standalone"` dans next.config pour le deploiement Coolify
 - Leaflet necessite `{ ssr: false }` pour les imports dynamiques
