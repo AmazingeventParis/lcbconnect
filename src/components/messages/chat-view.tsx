@@ -474,16 +474,25 @@ export function ChatView({
       const messageContent = content || (attachments.length > 0 ? "📷 Photo" : "");
       if (!messageContent) return;
 
-      const { error } = await (supabase as any)
+      const { data: newMsg, error } = await (supabase as any)
         .from("lcb_messages")
         .insert({
           conversation_id: conversationId,
           sender_id: currentUserId,
           content: messageContent,
           attachments,
-        });
+        })
+        .select()
+        .single();
 
       if (error) throw error;
+
+      // Add message to local state immediately (optimistic update)
+      const currentUserProfile = allMembers.find((m) => m.id === currentUserId) ?? null;
+      setMessages((prev) => {
+        if (prev.some((m) => m.id === newMsg.id)) return prev;
+        return [...prev, { ...newMsg, sender: currentUserProfile }];
+      });
 
       // Update conversation updated_at
       await (supabase as any)
