@@ -269,11 +269,26 @@ export function ChatView({
         async (payload: any) => {
           const newMsg = payload.new as Message;
 
-          // Don't duplicate if we already added it optimistically
+          // Own messages are already shown via optimistic update in handleSend
+          if (newMsg.sender_id === currentUserId) {
+            // Just replace temp ID with real ID if not already done
+            setMessages((prev) => {
+              if (prev.some((m) => m.id === newMsg.id)) return prev;
+              return prev;
+            });
+            // Update last_read_at
+            await (supabase as any)
+              .from("lcb_conversation_members")
+              .update({ last_read_at: new Date().toISOString() })
+              .eq("conversation_id", conversationId)
+              .eq("user_id", currentUserId);
+            return;
+          }
+
+          // Add messages from other users
           setMessages((prev) => {
             if (prev.some((m) => m.id === newMsg.id)) return prev;
 
-            // Fetch sender profile
             const existingSender = prev.find(
               (m) => m.sender_id === newMsg.sender_id
             )?.sender;
@@ -284,7 +299,7 @@ export function ChatView({
             ];
           });
 
-          // If the message is from someone else, load their profile if needed
+          // Load their profile if needed
           if (newMsg.sender_id !== currentUserId) {
             const { data: profile } = await (supabase as any)
               .from("lcb_profiles")
@@ -474,6 +489,23 @@ export function ChatView({
       const messageContent = content || (attachments.length > 0 ? "📷 Photo" : "");
       if (!messageContent) return;
 
+      // Optimistic update: show message IMMEDIATELY before server roundtrip
+      const tempId = crypto.randomUUID();
+      const currentUserProfile = allMembers.find((m) => m.id === currentUserId) ?? null;
+      const optimisticMsg: MessageWithSender = {
+        id: tempId,
+        conversation_id: conversationId,
+        sender_id: currentUserId,
+        content: messageContent,
+        attachments,
+        created_at: new Date().toISOString(),
+        sender: currentUserProfile,
+      };
+
+      setMessages((prev) => [...prev, optimisticMsg]);
+      scrollToBottom();
+
+      // Insert in DB
       const { data: newMsg, error } = await (supabase as any)
         .from("lcb_messages")
         .insert({
@@ -485,20 +517,27 @@ export function ChatView({
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        // Remove optimistic message on failure
+        setMessages((prev) => prev.filter((m) => m.id !== tempId));
+        throw error;
+      }
 
-      // Add message to local state immediately (optimistic update)
-      const currentUserProfile = allMembers.find((m) => m.id === currentUserId) ?? null;
-      setMessages((prev) => {
-        if (prev.some((m) => m.id === newMsg.id)) return prev;
-        return [...prev, { ...newMsg, sender: currentUserProfile }];
-      });
+      // Replace temp message with real one (with real ID from DB)
+      if (newMsg) {
+        setMessages((prev) =>
+          prev.map((m) =>
+            m.id === tempId ? { ...newMsg, sender: currentUserProfile } : m
+          )
+        );
+      }
 
-      // Update conversation updated_at
-      await (supabase as any)
+      // Fire-and-forget: update conversation timestamp + notifications
+      (supabase as any)
         .from("lcb_conversations")
         .update({ updated_at: new Date().toISOString() })
-        .eq("id", conversationId);
+        .eq("id", conversationId)
+        .then(() => {});
 
       sendNotification({
         type: "message",
@@ -518,8 +557,6 @@ export function ChatView({
           data: { mentionedUserIds: mentionedIds.join(",") },
         });
       }
-
-      setTimeout(() => scrollToBottom(), 100);
     } catch (err) {
       console.error(err);
       toast.error("Erreur lors de l'envoi du message");
