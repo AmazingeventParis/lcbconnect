@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { createClient } from "@/lib/supabase/client";
 import type { Post, Comment, Like } from "@/lib/supabase/types";
 
@@ -19,7 +19,11 @@ export function useRealtime({
   onNewComment,
   onLikeChange,
 }: UseRealtimeOptions) {
-  const supabase = createClient();
+  const supabase = useMemo(() => createClient(), []);
+
+  // Store callbacks in refs to avoid subscription churn
+  const cbRef = useRef({ onNewPost, onUpdatePost, onDeletePost, onNewComment, onLikeChange });
+  cbRef.current = { onNewPost, onUpdatePost, onDeletePost, onNewComment, onLikeChange };
 
   useEffect(() => {
     const channel = supabase
@@ -28,42 +32,42 @@ export function useRealtime({
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "lcb_posts" },
         (payload) => {
-          onNewPost?.(payload.new as Post);
+          cbRef.current.onNewPost?.(payload.new as Post);
         }
       )
       .on(
         "postgres_changes",
         { event: "UPDATE", schema: "public", table: "lcb_posts" },
         (payload) => {
-          onUpdatePost?.(payload.new as Post);
+          cbRef.current.onUpdatePost?.(payload.new as Post);
         }
       )
       .on(
         "postgres_changes",
         { event: "DELETE", schema: "public", table: "lcb_posts" },
         (payload) => {
-          onDeletePost?.(payload.old.id as string);
+          cbRef.current.onDeletePost?.(payload.old.id as string);
         }
       )
       .on(
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "lcb_comments" },
         (payload) => {
-          onNewComment?.(payload.new as Comment);
+          cbRef.current.onNewComment?.(payload.new as Comment);
         }
       )
       .on(
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "lcb_likes" },
         (payload) => {
-          onLikeChange?.(payload.new as Like, "INSERT");
+          cbRef.current.onLikeChange?.(payload.new as Like, "INSERT");
         }
       )
       .on(
         "postgres_changes",
         { event: "DELETE", schema: "public", table: "lcb_likes" },
         (payload) => {
-          onLikeChange?.(payload.old as Like, "DELETE");
+          cbRef.current.onLikeChange?.(payload.old as Like, "DELETE");
         }
       )
       .subscribe();
@@ -71,5 +75,5 @@ export function useRealtime({
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [supabase, onNewPost, onUpdatePost, onDeletePost, onNewComment, onLikeChange]);
+  }, [supabase]);
 }

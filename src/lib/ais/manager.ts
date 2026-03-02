@@ -169,6 +169,8 @@ class AISManager {
 
   private scheduleReconnect(name: string, boxes: number[][][]) {
     const timer = setTimeout(() => {
+      // Remove this timer from the array once it fires
+      this.reconnectTimers = this.reconnectTimers.filter((t) => t !== timer);
       console.log(`[AIS][${name}] Reconnecting... (${boxes.length} zones)`);
       this.connectZone(name, boxes);
     }, 5000);
