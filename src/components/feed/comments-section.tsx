@@ -109,20 +109,6 @@ function CommentItem({
 
         if (error) throw error;
 
-        // Update comments count on post
-        const { data: post } = await supabase
-          .from("lcb_posts")
-          .select("comments_count")
-          .eq("id", postId)
-          .single();
-
-        if (post) {
-          await supabase
-            .from("lcb_posts")
-            .update({ comments_count: post.comments_count + 1 })
-            .eq("id", postId);
-        }
-
         sendNotification({
           type: "reply",
           actorId: currentUser.id,
@@ -326,20 +312,6 @@ export function CommentsSection({ postId, currentUser }: CommentsSectionProps) {
         });
 
         if (error) throw error;
-
-        // Update comments count on post
-        const { data: post } = await supabase
-          .from("lcb_posts")
-          .select("comments_count")
-          .eq("id", postId)
-          .single();
-
-        if (post) {
-          await supabase
-            .from("lcb_posts")
-            .update({ comments_count: post.comments_count + 1 })
-            .eq("id", postId);
-        }
 
         sendNotification({
           type: "comment",
