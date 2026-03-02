@@ -119,23 +119,13 @@ export function useNotifications(userId: string | undefined) {
     fetchCount();
   }, [fetchCount]);
 
-  // Instant refresh when current tab sends a notification
+  // Polling fallback every 30s (in case Realtime misses events)
   useEffect(() => {
-    const handler = () => {
-      // Small delay to let the DB insert commit
-      setTimeout(fetchCount, 300);
-    };
-    window.addEventListener("lcb-notification-sent", handler);
-    return () => window.removeEventListener("lcb-notification-sent", handler);
-  }, [fetchCount]);
-
-  // Polling fallback every 15s (in case Realtime misses events)
-  useEffect(() => {
-    const interval = setInterval(fetchCount, 15000);
+    const interval = setInterval(fetchCount, 30000);
     return () => clearInterval(interval);
   }, [fetchCount]);
 
-  // Realtime subscription for new notifications
+  // Realtime subscription for new notifications — optimistic instant update
   useEffect(() => {
     if (!userId) return;
 
@@ -149,8 +139,43 @@ export function useNotifications(userId: string | undefined) {
           table: "lcb_notifications",
           filter: `user_id=eq.${userId}`,
         },
-        () => {
-          fetchCount();
+        (payload: any) => {
+          // Instant optimistic increment from the payload — no extra DB query
+          const newType = payload.new?.type as string;
+          if (newType) {
+            setUnreadCount((prev) => prev + 1);
+            setSectionCounts((prev) => {
+              const next = { ...prev };
+              switch (newType) {
+                case "like":
+                case "comment":
+                case "reply":
+                  next.feed++;
+                  break;
+                case "message":
+                case "mention":
+                  next.messages++;
+                  break;
+                case "event":
+                  next.events++;
+                  break;
+                case "document":
+                  next.documents++;
+                  break;
+                case "directory":
+                  next.directory++;
+                  break;
+                case "admin":
+                case "complaint":
+                case "service":
+                case "report":
+                  next.admin++;
+                  break;
+              }
+              next.total++;
+              return next;
+            });
+          }
         }
       )
       .on(
@@ -162,6 +187,7 @@ export function useNotifications(userId: string | undefined) {
           filter: `user_id=eq.${userId}`,
         },
         () => {
+          // For mark-as-read, refetch full counts (less frequent)
           fetchCount();
         }
       )
