@@ -52,7 +52,11 @@ export async function POST(request: NextRequest) {
 
     // Upload to storage with service role (bypasses all RLS)
     const serviceClient = await createServiceClient();
-    const filePath = `${profile.id}/${Date.now()}-${file.name}`;
+    // Sanitize filename: replace spaces and special chars for valid storage key
+    const safeName = file.name
+      .normalize("NFD").replace(/[\u0300-\u036f]/g, "") // strip accents
+      .replace(/[^a-zA-Z0-9._-]/g, "_"); // replace spaces & special chars with _
+    const filePath = `${profile.id}/${Date.now()}-${safeName}`;
 
     const fileBuffer = Buffer.from(await file.arrayBuffer());
 
