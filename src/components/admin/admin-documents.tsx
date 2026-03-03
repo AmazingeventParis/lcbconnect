@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   Folder,
   FolderOpen,
@@ -12,14 +12,17 @@ import {
   EyeOff,
   Trash2,
   Pencil,
-  Plus,
   MoreHorizontal,
   Upload,
   FolderRoot,
   Loader2,
+  Image,
+  FileSpreadsheet,
+  File,
 } from "lucide-react";
 import { toast } from "sonner";
 
+import { createClient } from "@/lib/supabase/client";
 import type { Profile, Document, DocumentFolder } from "@/lib/supabase/types";
 import { DOCUMENT_CATEGORIES, type DocumentCategory } from "@/lib/constants";
 
@@ -50,7 +53,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { UploadDocumentDialog } from "@/components/documents/upload-document-dialog";
 
 interface AdminDocumentsProps {
   profile: Profile;
@@ -60,6 +62,34 @@ function formatFileSize(bytes: number): string {
   if (bytes < 1024) return `${bytes} o`;
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} Ko`;
   return `${(bytes / (1024 * 1024)).toFixed(1)} Mo`;
+}
+
+function getFileIcon(title: string) {
+  const ext = title.split(".").pop()?.toLowerCase() ?? "";
+  if (["jpg", "jpeg", "png", "gif", "webp", "svg", "bmp"].includes(ext)) {
+    return <Image className="size-4 text-blue-600 dark:text-blue-400" />;
+  }
+  if (["xls", "xlsx", "csv", "ods"].includes(ext)) {
+    return <FileSpreadsheet className="size-4 text-green-600 dark:text-green-400" />;
+  }
+  if (["pdf"].includes(ext)) {
+    return <FileText className="size-4 text-red-600 dark:text-red-400" />;
+  }
+  return <File className="size-4 text-slate-600 dark:text-slate-400" />;
+}
+
+function getFileIconBg(title: string) {
+  const ext = title.split(".").pop()?.toLowerCase() ?? "";
+  if (["jpg", "jpeg", "png", "gif", "webp", "svg", "bmp"].includes(ext)) {
+    return "bg-blue-50 dark:bg-blue-950";
+  }
+  if (["xls", "xlsx", "csv", "ods"].includes(ext)) {
+    return "bg-green-50 dark:bg-green-950";
+  }
+  if (["pdf"].includes(ext)) {
+    return "bg-red-50 dark:bg-red-950";
+  }
+  return "bg-slate-50 dark:bg-slate-900";
 }
 
 type FolderNode = DocumentFolder & { children: FolderNode[] };
@@ -85,6 +115,9 @@ function buildTree(folders: DocumentFolder[]): FolderNode[] {
 }
 
 export function AdminDocuments({ profile }: AdminDocumentsProps) {
+  const supabase = createClient();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   const [folders, setFolders] = useState<DocumentFolder[]>([]);
   const [documents, setDocuments] = useState<Document[]>([]);
   const [loading, setLoading] = useState(true);
@@ -92,6 +125,11 @@ export function AdminDocuments({ profile }: AdminDocumentsProps) {
   const [expandedFolders, setExpandedFolders] = useState<Set<string>>(
     new Set()
   );
+
+  // Upload state
+  const [uploading, setUploading] = useState(false);
+  const [uploadingFiles, setUploadingFiles] = useState<string[]>([]);
+  const [dragOver, setDragOver] = useState(false);
 
   // Dialog states
   const [createFolderOpen, setCreateFolderOpen] = useState(false);
@@ -111,8 +149,6 @@ export function AdminDocuments({ profile }: AdminDocumentsProps) {
     name: string;
   } | null>(null);
   const [deleting, setDeleting] = useState(false);
-
-  const [uploadOpen, setUploadOpen] = useState(false);
 
   const [togglingPublish, setTogglingPublish] = useState<string | null>(null);
 
@@ -149,6 +185,113 @@ export function AdminDocuments({ profile }: AdminDocumentsProps) {
 
   const tree = buildTree(folders);
 
+  // --- Direct file upload (no dialog) ---
+  async function uploadFiles(files: FileList | File[]) {
+    const fileArray = Array.from(files);
+    if (fileArray.length === 0) return;
+
+    const maxSize = 50 * 1024 * 1024; // 50 Mo
+    const tooBig = fileArray.filter((f) => f.size > maxSize);
+    if (tooBig.length > 0) {
+      toast.error(
+        `${tooBig.length} fichier(s) dépassent 50 Mo et seront ignorés.`
+      );
+    }
+
+    const validFiles = fileArray.filter((f) => f.size <= maxSize);
+    if (validFiles.length === 0) return;
+
+    setUploading(true);
+    setUploadingFiles(validFiles.map((f) => f.name));
+
+    let successCount = 0;
+
+    for (const file of validFiles) {
+      try {
+        // 1. Upload to storage
+        const filePath = `${profile.id}/${Date.now()}-${file.name}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from("lcb-documents")
+          .upload(filePath, file, { cacheControl: "3600", upsert: false });
+
+        if (uploadError) {
+          toast.error(`Erreur upload "${file.name}": ${uploadError.message}`);
+          continue;
+        }
+
+        // 2. Get public URL
+        const {
+          data: { publicUrl },
+        } = supabase.storage.from("lcb-documents").getPublicUrl(filePath);
+
+        // 3. Insert DB record - title = filename, defaults for the rest
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const { error: insertError } = await (supabase as any)
+          .from("lcb_documents")
+          .insert({
+            uploaded_by: profile.id,
+            title: file.name,
+            description: null,
+            category: "divers",
+            year: new Date().getFullYear(),
+            file_url: publicUrl,
+            file_size: file.size,
+            min_role: "membre",
+            folder_id: selectedFolderId ?? null,
+            is_published: false,
+          });
+
+        if (insertError) {
+          toast.error(
+            `Erreur enregistrement "${file.name}": ${insertError.message}`
+          );
+          continue;
+        }
+
+        successCount++;
+      } catch {
+        toast.error(`Erreur inattendue pour "${file.name}"`);
+      }
+    }
+
+    if (successCount > 0) {
+      toast.success(
+        successCount === 1
+          ? "1 fichier importé"
+          : `${successCount} fichiers importés`
+      );
+      await fetchData();
+    }
+
+    setUploading(false);
+    setUploadingFiles([]);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  }
+
+  function handleFileInputChange(e: React.ChangeEvent<HTMLInputElement>) {
+    if (e.target.files) uploadFiles(e.target.files);
+  }
+
+  function handleDragOver(e: React.DragEvent) {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragOver(true);
+  }
+
+  function handleDragLeave(e: React.DragEvent) {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragOver(false);
+  }
+
+  function handleDrop(e: React.DragEvent) {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragOver(false);
+    if (e.dataTransfer.files) uploadFiles(e.dataTransfer.files);
+  }
+
   // Folder actions
   async function handleCreateFolder() {
     if (!newFolderName.trim()) return;
@@ -172,7 +315,9 @@ export function AdminDocuments({ profile }: AdminDocumentsProps) {
       setNewFolderName("");
       setCreateFolderParentId(null);
       if (createFolderParentId) {
-        setExpandedFolders((prev) => new Set([...prev, createFolderParentId!]));
+        setExpandedFolders(
+          (prev) => new Set([...prev, createFolderParentId!])
+        );
       }
       await fetchData();
     } catch (err: any) {
@@ -274,11 +419,6 @@ export function AdminDocuments({ profile }: AdminDocumentsProps) {
       else next.add(folderId);
       return next;
     });
-  }
-
-  function handleUploadCreated() {
-    setUploadOpen(false);
-    fetchData();
   }
 
   // Count documents in a folder (including subfolders)
@@ -537,31 +677,71 @@ export function AdminDocuments({ profile }: AdminDocumentsProps) {
               <Button
                 size="sm"
                 className="h-7 shrink-0"
-                onClick={() => setUploadOpen(true)}
+                disabled={uploading}
+                onClick={() => fileInputRef.current?.click()}
               >
-                <Upload className="size-3.5" />
-                <span className="hidden sm:inline ml-1">Upload</span>
+                {uploading ? (
+                  <Loader2 className="size-3.5 animate-spin" />
+                ) : (
+                  <Upload className="size-3.5" />
+                )}
+                <span className="hidden sm:inline ml-1">
+                  {uploading ? "Import..." : "Importer"}
+                </span>
               </Button>
             </div>
           </CardHeader>
           <CardContent className="p-4 pt-2">
+            {/* Drop zone */}
+            <div
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onDrop={handleDrop}
+              onClick={() => {
+                if (!uploading) fileInputRef.current?.click();
+              }}
+              className={`rounded-lg border-2 border-dashed p-4 mb-4 flex flex-col items-center gap-2 cursor-pointer transition-colors ${
+                dragOver
+                  ? "border-[#1E3A5F] bg-[#1E3A5F]/5"
+                  : "border-muted-foreground/25 hover:border-muted-foreground/50"
+              } ${uploading ? "pointer-events-none opacity-60" : ""}`}
+            >
+              {uploading ? (
+                <>
+                  <Loader2 className="size-6 animate-spin text-muted-foreground" />
+                  <span className="text-sm text-muted-foreground">
+                    Import de {uploadingFiles.length} fichier
+                    {uploadingFiles.length > 1 ? "s" : ""} en cours...
+                  </span>
+                </>
+              ) : (
+                <>
+                  <Upload className="size-6 text-muted-foreground" />
+                  <span className="text-sm font-medium text-muted-foreground">
+                    Glissez-déposez vos fichiers ici
+                  </span>
+                  <span className="text-xs text-muted-foreground">
+                    ou cliquez pour parcourir — PDF, images, Excel, tous
+                    formats (max 50 Mo)
+                  </span>
+                </>
+              )}
+            </div>
+
+            <input
+              ref={fileInputRef}
+              type="file"
+              multiple
+              onChange={handleFileInputChange}
+              className="hidden"
+            />
+
+            {/* Documents list */}
             {currentDocuments.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-12 text-center">
-                <div className="rounded-full bg-muted p-3 mb-3">
-                  <FileText className="size-6 text-muted-foreground" />
-                </div>
+              <div className="flex flex-col items-center justify-center py-8 text-center">
                 <p className="text-sm text-muted-foreground">
                   Aucun document dans ce dossier
                 </p>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="mt-3"
-                  onClick={() => setUploadOpen(true)}
-                >
-                  <Plus className="size-4" />
-                  Ajouter un document
-                </Button>
               </div>
             ) : (
               <div className="space-y-2">
@@ -570,8 +750,10 @@ export function AdminDocuments({ profile }: AdminDocumentsProps) {
                     key={doc.id}
                     className="flex items-center gap-3 rounded-lg border p-3 hover:bg-muted/50 transition-colors"
                   >
-                    <div className="flex-shrink-0 rounded-lg bg-red-50 dark:bg-red-950 p-2">
-                      <FileText className="size-4 text-red-600 dark:text-red-400" />
+                    <div
+                      className={`flex-shrink-0 rounded-lg p-2 ${getFileIconBg(doc.title)}`}
+                    >
+                      {getFileIcon(doc.title)}
                     </div>
 
                     <div className="flex-1 min-w-0">
@@ -579,14 +761,13 @@ export function AdminDocuments({ profile }: AdminDocumentsProps) {
                         {doc.title}
                       </p>
                       <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-                        <span className="text-xs text-muted-foreground">
-                          {DOCUMENT_CATEGORIES[
-                            doc.category as DocumentCategory
-                          ]?.label ?? doc.category}
-                        </span>
-                        <span className="text-xs text-muted-foreground">
-                          {doc.year}
-                        </span>
+                        {doc.category !== "divers" && (
+                          <span className="text-xs text-muted-foreground">
+                            {DOCUMENT_CATEGORIES[
+                              doc.category as DocumentCategory
+                            ]?.label ?? doc.category}
+                          </span>
+                        )}
                         <span className="text-xs text-muted-foreground">
                           {formatFileSize(doc.file_size)}
                         </span>
@@ -611,9 +792,7 @@ export function AdminDocuments({ profile }: AdminDocumentsProps) {
                         className="h-7 w-7 p-0"
                         disabled={togglingPublish === doc.id}
                         onClick={() => handleTogglePublish(doc)}
-                        title={
-                          doc.is_published ? "Dépublier" : "Publier"
-                        }
+                        title={doc.is_published ? "Dépublier" : "Publier"}
                       >
                         {togglingPublish === doc.id ? (
                           <Loader2 className="size-3.5 animate-spin" />
@@ -750,15 +929,6 @@ export function AdminDocuments({ profile }: AdminDocumentsProps) {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-
-      {/* Upload document dialog */}
-      <UploadDocumentDialog
-        open={uploadOpen}
-        onOpenChange={setUploadOpen}
-        profile={profile}
-        onCreated={handleUploadCreated}
-        folderId={selectedFolderId}
-      />
     </div>
   );
 }
