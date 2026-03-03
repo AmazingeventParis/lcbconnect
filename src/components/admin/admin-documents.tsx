@@ -22,6 +22,7 @@ import {
   Download,
   ExternalLink,
   FolderInput,
+  FolderUp,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -118,6 +119,7 @@ function buildTree(folders: DocumentFolder[]): FolderNode[] {
 
 export function AdminDocuments({ profile }: AdminDocumentsProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const folderInputRef = useRef<HTMLInputElement>(null);
 
   const [folders, setFolders] = useState<DocumentFolder[]>([]);
   const [documents, setDocuments] = useState<Document[]>([]);
@@ -272,7 +274,178 @@ export function AdminDocuments({ profile }: AdminDocumentsProps) {
     e.preventDefault();
     e.stopPropagation();
     setDragOver(false);
+    // Check if dropped items include directories (via DataTransferItem API)
+    const items = e.dataTransfer.items;
+    if (items && items.length > 0) {
+      const entries: FileSystemEntry[] = [];
+      for (let i = 0; i < items.length; i++) {
+        const entry = items[i].webkitGetAsEntry?.();
+        if (entry) entries.push(entry);
+      }
+      const hasDir = entries.some((e) => e.isDirectory);
+      if (hasDir) {
+        collectEntriesAndUpload(entries);
+        return;
+      }
+    }
     if (e.dataTransfer.files) uploadFiles(e.dataTransfer.files);
+  }
+
+  // --- Directory upload helpers ---
+  function readEntriesRecursive(
+    entry: FileSystemEntry,
+    path: string
+  ): Promise<{ file: File; path: string }[]> {
+    return new Promise((resolve) => {
+      if (entry.isFile) {
+        (entry as FileSystemFileEntry).file((file) => {
+          resolve([{ file, path }]);
+        });
+      } else if (entry.isDirectory) {
+        const reader = (entry as FileSystemDirectoryEntry).createReader();
+        reader.readEntries(async (entries) => {
+          const results: { file: File; path: string }[] = [];
+          for (const child of entries) {
+            const childPath = path ? `${path}/${child.name}` : child.name;
+            const childResults = await readEntriesRecursive(child, childPath);
+            results.push(...childResults);
+          }
+          resolve(results);
+        });
+      } else {
+        resolve([]);
+      }
+    });
+  }
+
+  async function collectEntriesAndUpload(entries: FileSystemEntry[]) {
+    const allFiles: { file: File; path: string }[] = [];
+    for (const entry of entries) {
+      const startPath = entry.isDirectory ? entry.name : "";
+      const results = await readEntriesRecursive(entry, startPath);
+      allFiles.push(...results);
+    }
+    if (allFiles.length === 0) return;
+    await uploadDirectory(allFiles);
+  }
+
+  async function uploadDirectory(
+    files: { file: File; path: string }[]
+  ) {
+    const maxSize = 50 * 1024 * 1024;
+    const validFiles = files.filter((f) => f.file.size <= maxSize);
+    if (validFiles.length === 0) {
+      toast.error("Aucun fichier valide (max 50 Mo)");
+      return;
+    }
+
+    setUploading(true);
+    setUploadingFiles(validFiles.map((f) => f.file.name));
+
+    try {
+      // 1. Collect unique folder paths and create them
+      const folderPaths = new Set<string>();
+      for (const { path } of validFiles) {
+        const parts = path.split("/");
+        // All parts except the last (filename) are folder segments
+        for (let i = 1; i <= parts.length - 1; i++) {
+          folderPaths.add(parts.slice(0, i).join("/"));
+        }
+      }
+
+      // Sort by depth so parents are created first
+      const sortedPaths = Array.from(folderPaths).sort(
+        (a, b) => a.split("/").length - b.split("/").length
+      );
+
+      // Map: "path" -> folder id
+      const folderMap = new Map<string, string>();
+
+      for (const folderPath of sortedPaths) {
+        const parts = folderPath.split("/");
+        const name = parts[parts.length - 1];
+        const parentPath = parts.slice(0, -1).join("/");
+        const parentId = parentPath
+          ? folderMap.get(parentPath) ?? selectedFolderId
+          : selectedFolderId;
+
+        try {
+          const res = await fetch("/api/admin/documents", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              action: "create_folder",
+              name,
+              parent_id: parentId,
+            }),
+          });
+          if (res.ok) {
+            const data = await res.json();
+            folderMap.set(folderPath, data.folder.id);
+          }
+        } catch {
+          // Continue even if folder creation fails
+        }
+      }
+
+      // 2. Upload each file into its folder
+      let successCount = 0;
+      for (const { file, path } of validFiles) {
+        const parts = path.split("/");
+        const folderPath = parts.slice(0, -1).join("/");
+        const folderId = folderPath
+          ? folderMap.get(folderPath) ?? selectedFolderId
+          : selectedFolderId;
+
+        try {
+          const formData = new FormData();
+          formData.append("file", file);
+          if (folderId) formData.append("folder_id", folderId);
+
+          const res = await fetch("/api/admin/documents/upload", {
+            method: "POST",
+            body: formData,
+          });
+
+          if (res.ok) {
+            successCount++;
+          } else {
+            const data = await res.json().catch(() => ({ error: "Erreur" }));
+            toast.error(`Erreur "${file.name}": ${data.error}`);
+          }
+        } catch {
+          toast.error(`Erreur réseau pour "${file.name}"`);
+        }
+      }
+
+      if (successCount > 0) {
+        toast.success(
+          `${successCount} fichier${successCount > 1 ? "s" : ""} importé${successCount > 1 ? "s" : ""} avec ${folderMap.size} dossier${folderMap.size > 1 ? "s" : ""}`
+        );
+      }
+      await fetchData();
+    } catch {
+      toast.error("Erreur lors de l'import du dossier");
+    } finally {
+      setUploading(false);
+      setUploadingFiles([]);
+    }
+  }
+
+  function handleFolderInputChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    // webkitRelativePath gives us "FolderName/subfolder/file.pdf"
+    const fileList: { file: File; path: string }[] = [];
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      const relativePath = (file as any).webkitRelativePath || file.name;
+      fileList.push({ file, path: relativePath });
+    }
+
+    uploadDirectory(fileList);
+    if (folderInputRef.current) folderInputRef.current.value = "";
   }
 
   // Folder actions
@@ -787,21 +960,33 @@ export function AdminDocuments({ profile }: AdminDocumentsProps) {
                   {currentDocuments.length !== 1 ? "s" : ""}
                 </Badge>
               </div>
-              <Button
-                size="sm"
-                className="h-7 shrink-0"
-                disabled={uploading}
-                onClick={() => fileInputRef.current?.click()}
-              >
-                {uploading ? (
-                  <Loader2 className="size-3.5 animate-spin" />
-                ) : (
-                  <Upload className="size-3.5" />
-                )}
-                <span className="hidden sm:inline ml-1">
-                  {uploading ? "Import..." : "Importer"}
-                </span>
-              </Button>
+              <div className="flex items-center gap-1.5 shrink-0">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="h-7"
+                  disabled={uploading}
+                  onClick={() => folderInputRef.current?.click()}
+                >
+                  <FolderUp className="size-3.5" />
+                  <span className="hidden sm:inline ml-1">Dossier</span>
+                </Button>
+                <Button
+                  size="sm"
+                  className="h-7"
+                  disabled={uploading}
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  {uploading ? (
+                    <Loader2 className="size-3.5 animate-spin" />
+                  ) : (
+                    <Upload className="size-3.5" />
+                  )}
+                  <span className="hidden sm:inline ml-1">
+                    {uploading ? "Import..." : "Fichiers"}
+                  </span>
+                </Button>
+              </div>
             </div>
           </CardHeader>
           <CardContent className="p-4 pt-2">
@@ -831,11 +1016,11 @@ export function AdminDocuments({ profile }: AdminDocumentsProps) {
                 <>
                   <Upload className="size-6 text-muted-foreground" />
                   <span className="text-sm font-medium text-muted-foreground">
-                    Glissez-déposez vos fichiers ici
+                    Glissez-déposez vos fichiers ou dossiers ici
                   </span>
                   <span className="text-xs text-muted-foreground">
-                    ou cliquez pour parcourir — PDF, images, Excel, tous
-                    formats (max 50 Mo)
+                    ou utilisez les boutons ci-dessus — tous formats (max 50 Mo
+                    par fichier)
                   </span>
                 </>
               )}
@@ -846,6 +1031,15 @@ export function AdminDocuments({ profile }: AdminDocumentsProps) {
               type="file"
               multiple
               onChange={handleFileInputChange}
+              className="hidden"
+            />
+            <input
+              ref={(el) => {
+                (folderInputRef as React.MutableRefObject<HTMLInputElement | null>).current = el;
+                if (el) el.setAttribute("webkitdirectory", "");
+              }}
+              type="file"
+              onChange={handleFolderInputChange}
               className="hidden"
             />
 
