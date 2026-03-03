@@ -21,6 +21,7 @@ import {
   File,
   Download,
   ExternalLink,
+  FolderInput,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -151,6 +152,12 @@ export function AdminDocuments({ profile }: AdminDocumentsProps) {
   const [deleting, setDeleting] = useState(false);
 
   const [togglingPublish, setTogglingPublish] = useState<string | null>(null);
+
+  // Folder drag & drop state
+  const [draggingFolderId, setDraggingFolderId] = useState<string | null>(null);
+  // Use a special sentinel to distinguish "no target" from "root target"
+  const [dropTargetFolderId, setDropTargetFolderId] = useState<string | "ROOT" | null>(null);
+  const [movingFolder, setMovingFolder] = useState(false);
 
   const fetchData = useCallback(async () => {
     try {
@@ -397,6 +404,92 @@ export function AdminDocuments({ profile }: AdminDocumentsProps) {
     });
   }
 
+  // --- Folder drag & drop ---
+  function isDescendantOf(folderId: string, ancestorId: string): boolean {
+    const folder = folders.find((f) => f.id === folderId);
+    if (!folder) return false;
+    if (folder.parent_id === ancestorId) return true;
+    if (folder.parent_id) return isDescendantOf(folder.parent_id, ancestorId);
+    return false;
+  }
+
+  function canDropFolder(dragId: string, targetId: string | null): boolean {
+    if (!dragId) return false;
+    // Can't drop on itself
+    if (dragId === targetId) return false;
+    // Can't drop into its own descendant
+    if (targetId && isDescendantOf(targetId, dragId)) return false;
+    // Check it's not already there
+    const folder = folders.find((f) => f.id === dragId);
+    if (folder && (folder.parent_id ?? null) === targetId) return false;
+    return true;
+  }
+
+  function handleFolderDragStart(e: React.DragEvent, folderId: string) {
+    e.dataTransfer.setData("application/folder-id", folderId);
+    e.dataTransfer.effectAllowed = "move";
+    setDraggingFolderId(folderId);
+  }
+
+  function handleFolderDragEnd() {
+    setDraggingFolderId(null);
+    setDropTargetFolderId(null);
+  }
+
+  function handleFolderDragOverTarget(e: React.DragEvent, targetId: string | null) {
+    if (!draggingFolderId) return;
+    if (!canDropFolder(draggingFolderId, targetId)) return;
+    e.preventDefault();
+    e.stopPropagation();
+    e.dataTransfer.dropEffect = "move";
+    setDropTargetFolderId(targetId ?? "ROOT");
+  }
+
+  function handleFolderDragLeaveTarget(e: React.DragEvent) {
+    e.preventDefault();
+    e.stopPropagation();
+    setDropTargetFolderId(null);
+  }
+
+  async function handleFolderDrop(e: React.DragEvent, targetId: string | null) {
+    e.preventDefault();
+    e.stopPropagation();
+    setDropTargetFolderId(null);
+
+    const dragId = e.dataTransfer.getData("application/folder-id");
+    if (!dragId || !canDropFolder(dragId, targetId)) return;
+
+    setMovingFolder(true);
+    try {
+      const res = await fetch("/api/admin/documents", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "move_folder",
+          folderId: dragId,
+          newParentId: targetId,
+        }),
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error);
+      }
+      const draggedFolder = folders.find((f) => f.id === dragId);
+      toast.success(
+        `"${draggedFolder?.name}" déplacé${targetId ? "" : " à la racine"}`
+      );
+      if (targetId) {
+        setExpandedFolders((prev) => new Set([...prev, targetId]));
+      }
+      await fetchData();
+    } catch (err: any) {
+      toast.error(err.message || "Erreur lors du déplacement");
+    } finally {
+      setMovingFolder(false);
+      setDraggingFolderId(null);
+    }
+  }
+
   // Count documents in a folder (including subfolders)
   function countDocsInFolder(folderId: string): number {
     let count = documents.filter((d) => d.folder_id === folderId).length;
@@ -414,14 +507,25 @@ export function AdminDocuments({ profile }: AdminDocumentsProps) {
     const hasChildren = node.children.length > 0;
     const docCount = countDocsInFolder(node.id);
 
+    const isDragging = draggingFolderId === node.id;
+    const isDropTarget = dropTargetFolderId === node.id;
+
     return (
       <div key={node.id}>
         <div
+          draggable
+          onDragStart={(e) => handleFolderDragStart(e, node.id)}
+          onDragEnd={handleFolderDragEnd}
+          onDragOver={(e) => handleFolderDragOverTarget(e, node.id)}
+          onDragLeave={handleFolderDragLeaveTarget}
+          onDrop={(e) => handleFolderDrop(e, node.id)}
           className={`flex items-center gap-1 px-2 py-1.5 rounded-md cursor-pointer group transition-colors ${
-            isSelected
-              ? "bg-[#1E3A5F]/10 text-[#1E3A5F] font-medium"
-              : "hover:bg-muted"
-          }`}
+            isDropTarget
+              ? "bg-amber-100 border border-amber-400 dark:bg-amber-900/30"
+              : isSelected
+                ? "bg-[#1E3A5F]/10 text-[#1E3A5F] font-medium"
+                : "hover:bg-muted"
+          } ${isDragging ? "opacity-40" : ""}`}
           style={{ paddingLeft: `${depth * 16 + 8}px` }}
           onClick={() => setSelectedFolderId(node.id)}
         >
@@ -484,6 +588,34 @@ export function AdminDocuments({ profile }: AdminDocumentsProps) {
                 <Pencil className="size-4 mr-2" />
                 Renommer
               </DropdownMenuItem>
+              {node.parent_id && (
+                <DropdownMenuItem
+                  onClick={async () => {
+                    try {
+                      const res = await fetch("/api/admin/documents", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                          action: "move_folder",
+                          folderId: node.id,
+                          newParentId: null,
+                        }),
+                      });
+                      if (!res.ok) {
+                        const data = await res.json();
+                        throw new Error(data.error);
+                      }
+                      toast.success(`"${node.name}" déplacé à la racine`);
+                      await fetchData();
+                    } catch (err: any) {
+                      toast.error(err.message || "Erreur");
+                    }
+                  }}
+                >
+                  <FolderInput className="size-4 mr-2" />
+                  Remettre à la racine
+                </DropdownMenuItem>
+              )}
               <DropdownMenuItem
                 className="text-red-600"
                 onClick={() =>
@@ -604,12 +736,17 @@ export function AdminDocuments({ profile }: AdminDocumentsProps) {
             </div>
           </CardHeader>
           <CardContent className="p-2 pt-0">
-            {/* Root node */}
+            {/* Root node (also a drop target to move folders to root) */}
             <div
+              onDragOver={(e) => handleFolderDragOverTarget(e, null)}
+              onDragLeave={handleFolderDragLeaveTarget}
+              onDrop={(e) => handleFolderDrop(e, null)}
               className={`flex items-center gap-1 px-2 py-1.5 rounded-md cursor-pointer transition-colors ${
-                selectedFolderId === null
-                  ? "bg-[#1E3A5F]/10 text-[#1E3A5F] font-medium"
-                  : "hover:bg-muted"
+                dropTargetFolderId === "ROOT"
+                  ? "bg-amber-100 border border-amber-400 dark:bg-amber-900/30"
+                  : selectedFolderId === null
+                    ? "bg-[#1E3A5F]/10 text-[#1E3A5F] font-medium"
+                    : "hover:bg-muted"
               }`}
               onClick={() => setSelectedFolderId(null)}
             >

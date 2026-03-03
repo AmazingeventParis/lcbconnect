@@ -165,6 +165,59 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ success: true });
       }
 
+      case "move_folder": {
+        const { folderId, newParentId } = body;
+        if (!folderId) {
+          return NextResponse.json(
+            { error: "ID dossier requis" },
+            { status: 400 }
+          );
+        }
+
+        // Prevent moving a folder into itself
+        if (folderId === newParentId) {
+          return NextResponse.json(
+            { error: "Impossible de déplacer un dossier dans lui-même" },
+            { status: 400 }
+          );
+        }
+
+        // Prevent circular reference: check newParentId is not a descendant of folderId
+        if (newParentId) {
+          const { data: allFolders } = await (serviceClient as any)
+            .from("lcb_document_folders")
+            .select("id, parent_id");
+
+          if (allFolders) {
+            const isDescendant = (parentId: string, targetId: string): boolean => {
+              if (parentId === targetId) return true;
+              const children = allFolders.filter((f: any) => f.parent_id === targetId);
+              return children.some((c: any) => isDescendant(parentId, c.id));
+            };
+            if (isDescendant(newParentId, folderId)) {
+              return NextResponse.json(
+                { error: "Impossible de déplacer un dossier dans un de ses sous-dossiers" },
+                { status: 400 }
+              );
+            }
+          }
+        }
+
+        const { error } = await (serviceClient as any)
+          .from("lcb_document_folders")
+          .update({ parent_id: newParentId || null })
+          .eq("id", folderId);
+
+        if (error) {
+          return NextResponse.json(
+            { error: "Erreur déplacement dossier: " + error.message },
+            { status: 500 }
+          );
+        }
+
+        return NextResponse.json({ success: true });
+      }
+
       default:
         return NextResponse.json(
           { error: "Action non reconnue" },
