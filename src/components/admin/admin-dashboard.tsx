@@ -222,6 +222,28 @@ export function AdminDashboard({ profile, stats }: AdminDashboardProps) {
                 <ArrowRight className="size-4 text-muted-foreground" />
               </Button>
             </Link>
+
+            <Link href="/admin/documents" className="block">
+              <Button
+                variant="outline"
+                className="w-full justify-between h-auto py-3"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="rounded-lg bg-blue-50 p-2">
+                    <FileText className="size-4 text-blue-600" />
+                  </div>
+                  <div className="text-left">
+                    <p className="font-medium text-sm">
+                      Gestion des documents
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      Dossiers, upload et publication
+                    </p>
+                  </div>
+                </div>
+                <ArrowRight className="size-4 text-muted-foreground" />
+              </Button>
+            </Link>
           </CardContent>
         </Card>
       </div>

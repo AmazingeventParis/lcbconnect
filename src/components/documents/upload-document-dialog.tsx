@@ -45,6 +45,7 @@ interface UploadDocumentDialogProps {
   onOpenChange: (open: boolean) => void;
   profile: Profile;
   onCreated: () => void;
+  folderId?: string | null;
 }
 
 function formatFileSize(bytes: number): string {
@@ -58,6 +59,7 @@ export function UploadDocumentDialog({
   onOpenChange,
   profile,
   onCreated,
+  folderId,
 }: UploadDocumentDialogProps) {
   const supabase = createClient();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -144,6 +146,7 @@ export function UploadDocumentDialog({
             file_url: publicUrl,
             file_size: selectedFile.size,
             min_role: values.min_role,
+            folder_id: folderId ?? null,
           })
           .select("id")
           .single();

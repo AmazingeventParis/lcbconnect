@@ -44,6 +44,7 @@ export function DocumentsClient({ profile }: DocumentsClientProps) {
     let query = (supabase as any)
       .from("lcb_documents")
       .select("*")
+      .eq("is_published", true)
       .order("year", { ascending: false })
       .order("created_at", { ascending: false });
 

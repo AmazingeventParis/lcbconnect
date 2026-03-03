@@ -398,6 +398,8 @@ export type Database = {
           file_url: string;
           file_size: number;
           min_role: "membre" | "ca" | "bureau";
+          folder_id: string | null;
+          is_published: boolean;
           created_at: string;
         };
         Insert: {
@@ -410,6 +412,8 @@ export type Database = {
           file_url: string;
           file_size: number;
           min_role?: "membre" | "ca" | "bureau";
+          folder_id?: string | null;
+          is_published?: boolean;
           created_at?: string;
         };
         Update: {
@@ -422,6 +426,35 @@ export type Database = {
           file_url?: string;
           file_size?: number;
           min_role?: "membre" | "ca" | "bureau";
+          folder_id?: string | null;
+          is_published?: boolean;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      lcb_document_folders: {
+        Row: {
+          id: string;
+          parent_id: string | null;
+          name: string;
+          sort_order: number;
+          created_by: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          parent_id?: string | null;
+          name: string;
+          sort_order?: number;
+          created_by: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          parent_id?: string | null;
+          name?: string;
+          sort_order?: number;
+          created_by?: string;
           created_at?: string;
         };
         Relationships: [];
@@ -762,6 +795,13 @@ export type DocumentInsert =
   Database["public"]["Tables"]["lcb_documents"]["Insert"];
 export type DocumentUpdate =
   Database["public"]["Tables"]["lcb_documents"]["Update"];
+
+export type DocumentFolder =
+  Database["public"]["Tables"]["lcb_document_folders"]["Row"];
+export type DocumentFolderInsert =
+  Database["public"]["Tables"]["lcb_document_folders"]["Insert"];
+export type DocumentFolderUpdate =
+  Database["public"]["Tables"]["lcb_document_folders"]["Update"];
 
 export type Event =
   Database["public"]["Tables"]["lcb_events"]["Row"];
