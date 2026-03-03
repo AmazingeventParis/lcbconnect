@@ -22,7 +22,6 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 
-import { createClient } from "@/lib/supabase/client";
 import type { Profile, Document, DocumentFolder } from "@/lib/supabase/types";
 import { DOCUMENT_CATEGORIES, type DocumentCategory } from "@/lib/constants";
 
@@ -115,7 +114,6 @@ function buildTree(folders: DocumentFolder[]): FolderNode[] {
 }
 
 export function AdminDocuments({ profile }: AdminDocumentsProps) {
-  const supabase = createClient();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [folders, setFolders] = useState<DocumentFolder[]>([]);
@@ -185,7 +183,7 @@ export function AdminDocuments({ profile }: AdminDocumentsProps) {
 
   const tree = buildTree(folders);
 
-  // --- Direct file upload (no dialog) ---
+  // --- Direct file upload via server-side API ---
   async function uploadFiles(files: FileList | File[]) {
     const fileArray = Array.from(files);
     if (fileArray.length === 0) return;
@@ -208,50 +206,26 @@ export function AdminDocuments({ profile }: AdminDocumentsProps) {
 
     for (const file of validFiles) {
       try {
-        // 1. Upload to storage
-        const filePath = `${profile.id}/${Date.now()}-${file.name}`;
-
-        const { error: uploadError } = await supabase.storage
-          .from("lcb-documents")
-          .upload(filePath, file, { cacheControl: "3600", upsert: false });
-
-        if (uploadError) {
-          toast.error(`Erreur upload "${file.name}": ${uploadError.message}`);
-          continue;
+        const formData = new FormData();
+        formData.append("file", file);
+        if (selectedFolderId) {
+          formData.append("folder_id", selectedFolderId);
         }
 
-        // 2. Get public URL
-        const {
-          data: { publicUrl },
-        } = supabase.storage.from("lcb-documents").getPublicUrl(filePath);
+        const res = await fetch("/api/admin/documents/upload", {
+          method: "POST",
+          body: formData,
+        });
 
-        // 3. Insert DB record - title = filename, defaults for the rest
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const { error: insertError } = await (supabase as any)
-          .from("lcb_documents")
-          .insert({
-            uploaded_by: profile.id,
-            title: file.name,
-            description: null,
-            category: "divers",
-            year: new Date().getFullYear(),
-            file_url: publicUrl,
-            file_size: file.size,
-            min_role: "membre",
-            folder_id: selectedFolderId ?? null,
-            is_published: false,
-          });
-
-        if (insertError) {
-          toast.error(
-            `Erreur enregistrement "${file.name}": ${insertError.message}`
-          );
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({ error: "Erreur serveur" }));
+          toast.error(`Erreur "${file.name}": ${data.error}`);
           continue;
         }
 
         successCount++;
       } catch {
-        toast.error(`Erreur inattendue pour "${file.name}"`);
+        toast.error(`Erreur réseau pour "${file.name}"`);
       }
     }
 
