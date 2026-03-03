@@ -106,7 +106,7 @@ function createVesselIcon(L: typeof import("leaflet"), vessel: VesselData) {
 
   return new L.DivIcon({
     html: `<div style="transform:rotate(${rotation}deg);opacity:${opacity};transition:transform 0.3s ease;width:${size[0]}px;height:${size[1]}px">${svg}</div>`,
-    className: "",
+    className: "vessel-marker",
     iconSize: [size[0], size[1]],
     iconAnchor: [size[0] / 2, size[1] / 2],
     popupAnchor: [0, -size[1] / 2],
@@ -200,6 +200,13 @@ export function CarteClient() {
       link.rel = "stylesheet";
       link.href = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css";
       document.head.appendChild(link);
+    }
+    // Smooth marker sliding between positions
+    if (!document.getElementById("vessel-marker-css")) {
+      const style = document.createElement("style");
+      style.id = "vessel-marker-css";
+      style.textContent = `.vessel-marker{transition:transform .5s linear!important}.leaflet-zoom-anim .vessel-marker{transition:none!important}`;
+      document.head.appendChild(style);
     }
     import("leaflet").then((L) => setLeafletLib(L));
   }, []);
