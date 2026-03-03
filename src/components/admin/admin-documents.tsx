@@ -295,7 +295,7 @@ export function AdminDocuments({ profile }: AdminDocumentsProps) {
   function readEntriesRecursive(
     entry: FileSystemEntry,
     path: string
-  ): Promise<{ file: File; path: string }[]> {
+  ): Promise<{ file: File; path: string; isDir?: boolean }[]> {
     return new Promise((resolve) => {
       if (entry.isFile) {
         (entry as FileSystemFileEntry).file((file) => {
@@ -304,7 +304,11 @@ export function AdminDocuments({ profile }: AdminDocumentsProps) {
       } else if (entry.isDirectory) {
         const reader = (entry as FileSystemDirectoryEntry).createReader();
         reader.readEntries(async (entries) => {
-          const results: { file: File; path: string }[] = [];
+          const results: { file: File; path: string; isDir?: boolean }[] = [];
+          if (entries.length === 0) {
+            // Empty directory — record it so folder gets created
+            results.push({ file: new globalThis.File([], ""), path, isDir: true });
+          }
           for (const child of entries) {
             const childPath = path ? `${path}/${child.name}` : child.name;
             const childResults = await readEntriesRecursive(child, childPath);
@@ -319,38 +323,46 @@ export function AdminDocuments({ profile }: AdminDocumentsProps) {
   }
 
   async function collectEntriesAndUpload(entries: FileSystemEntry[]) {
-    const allFiles: { file: File; path: string }[] = [];
+    const allEntries: { file: File; path: string; isDir?: boolean }[] = [];
     for (const entry of entries) {
       const startPath = entry.isDirectory ? entry.name : "";
       const results = await readEntriesRecursive(entry, startPath);
-      allFiles.push(...results);
+      allEntries.push(...results);
     }
-    if (allFiles.length === 0) return;
-    await uploadDirectory(allFiles);
+    if (allEntries.length === 0) return;
+    await uploadDirectory(allEntries);
   }
 
   async function uploadDirectory(
-    files: { file: File; path: string }[]
+    entries: { file: File; path: string; isDir?: boolean }[]
   ) {
     const maxSize = 50 * 1024 * 1024;
-    const validFiles = files.filter((f) => f.file.size <= maxSize);
-    if (validFiles.length === 0) {
+    const realFiles = entries.filter((f) => !f.isDir && f.file.size <= maxSize);
+    const dirEntries = entries.filter((f) => f.isDir);
+
+    if (realFiles.length === 0 && dirEntries.length === 0) {
       toast.error("Aucun fichier valide (max 50 Mo)");
       return;
     }
 
     setUploading(true);
-    setUploadingFiles(validFiles.map((f) => f.file.name));
+    setUploadingFiles(realFiles.map((f) => f.file.name));
 
     try {
       // 1. Collect unique folder paths and create them
       const folderPaths = new Set<string>();
-      for (const { path } of validFiles) {
+
+      // From real files: all parent segments
+      for (const { path } of realFiles) {
         const parts = path.split("/");
-        // All parts except the last (filename) are folder segments
         for (let i = 1; i <= parts.length - 1; i++) {
           folderPaths.add(parts.slice(0, i).join("/"));
         }
+      }
+
+      // From empty directory entries: the directory path itself
+      for (const { path } of dirEntries) {
+        if (path) folderPaths.add(path);
       }
 
       // Sort by depth so parents are created first
@@ -388,9 +400,9 @@ export function AdminDocuments({ profile }: AdminDocumentsProps) {
         }
       }
 
-      // 2. Upload each file into its folder
+      // 2. Upload each real file into its folder
       let successCount = 0;
-      for (const { file, path } of validFiles) {
+      for (const { file, path } of realFiles) {
         const parts = path.split("/");
         const folderPath = parts.slice(0, -1).join("/");
         const folderId = folderPath
@@ -418,9 +430,14 @@ export function AdminDocuments({ profile }: AdminDocumentsProps) {
         }
       }
 
+      const folderCount = folderMap.size;
       if (successCount > 0) {
         toast.success(
-          `${successCount} fichier${successCount > 1 ? "s" : ""} importé${successCount > 1 ? "s" : ""} avec ${folderMap.size} dossier${folderMap.size > 1 ? "s" : ""}`
+          `${successCount} fichier${successCount > 1 ? "s" : ""} importé${successCount > 1 ? "s" : ""} avec ${folderCount} dossier${folderCount > 1 ? "s" : ""}`
+        );
+      } else if (folderCount > 0) {
+        toast.success(
+          `${folderCount} dossier${folderCount > 1 ? "s" : ""} créé${folderCount > 1 ? "s" : ""}`
         );
       }
       await fetchData();
