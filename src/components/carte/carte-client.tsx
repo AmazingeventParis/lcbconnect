@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, memo, useCallback } from "react";
 import dynamic from "next/dynamic";
 import {
   Loader2,
@@ -37,31 +37,91 @@ interface VesselData {
   course: number;
   heading: number;
   timestamp: string;
+  zone?: string;
+  shipType?: number;
+}
+
+// Ship type 70-89 = cargo/tanker/peniche
+function getVesselKind(shipType?: number): "peniche" | "boat" {
+  if (shipType != null && shipType >= 70 && shipType <= 89) return "peniche";
+  return "boat";
+}
+
+function getRotationDeg(heading: number, course: number): number {
+  if (heading !== 511 && heading >= 0 && heading < 360) return heading;
+  if (course >= 0 && course < 360) return course;
+  return 0;
+}
+
+// Peniche/cargo SVG — rectangular barge shape, pointing north
+const PENICHE_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="12" height="30" viewBox="0 0 12 30">
+  <path d="M2 30 L0 26 L0 4 Q0 0 6 0 Q12 0 12 4 L12 26 L10 30 Z" fill="#1E3A5F" stroke="#fff" stroke-width="1"/>
+</svg>`;
+
+// Generic boat SVG — more pointed/sleek shape, pointing north
+const BOAT_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="10" height="28" viewBox="0 0 10 28">
+  <path d="M2 28 L0 22 L1 6 Q1 0 5 0 Q9 0 9 6 L10 22 L8 28 Z" fill="#2563EB" stroke="#fff" stroke-width="1"/>
+</svg>`;
+
+const SHIP_TYPE_LABELS: Record<number, string> = {
+  70: "Cargo",
+  71: "Cargo - DG cat A",
+  72: "Cargo - DG cat B",
+  73: "Cargo - DG cat C",
+  74: "Cargo - DG cat D",
+  79: "Cargo",
+  80: "Tanker",
+  81: "Tanker - DG cat A",
+  82: "Tanker - DG cat B",
+  83: "Tanker - DG cat C",
+  84: "Tanker - DG cat D",
+  89: "Tanker",
+  60: "Passager",
+  69: "Passager",
+  30: "Pêche",
+  31: "Remorqueur",
+  32: "Remorqueur",
+  36: "Voilier",
+  37: "Plaisance",
+  52: "Remorqueur",
+};
+
+function getShipTypeLabel(shipType?: number): string | null {
+  if (shipType == null) return null;
+  if (SHIP_TYPE_LABELS[shipType]) return SHIP_TYPE_LABELS[shipType];
+  if (shipType >= 70 && shipType <= 79) return "Cargo";
+  if (shipType >= 80 && shipType <= 89) return "Tanker";
+  if (shipType >= 60 && shipType <= 69) return "Passager";
+  if (shipType >= 40 && shipType <= 49) return "Grande vitesse";
+  if (shipType >= 30 && shipType <= 39) return "Navire spécial";
+  return `Type ${shipType}`;
+}
+
+function createVesselIcon(L: typeof import("leaflet"), vessel: VesselData) {
+  const kind = getVesselKind(vessel.shipType);
+  const svg = kind === "peniche" ? PENICHE_SVG : BOAT_SVG;
+  const rotation = getRotationDeg(vessel.heading, vessel.course);
+  const opacity = vessel.speed < 0.5 ? 0.6 : 1;
+  const size = kind === "peniche" ? [12, 30] : [10, 28];
+
+  return new L.DivIcon({
+    html: `<div style="transform:rotate(${rotation}deg);opacity:${opacity};transition:transform 0.3s ease;width:${size[0]}px;height:${size[1]}px">${svg}</div>`,
+    className: "",
+    iconSize: [size[0], size[1]],
+    iconAnchor: [size[0] / 2, size[1] / 2],
+    popupAnchor: [0, -size[1] / 2],
+  });
 }
 
 type Status = "connecting" | "connected" | "error";
 
-function CarteMap({
+const CarteMap = memo(function CarteMap({
   vessels,
-  leafletIcon,
+  leafletLib,
 }: {
   vessels: Map<number, VesselData>;
-  leafletIcon: typeof import("leaflet") | null;
+  leafletLib: typeof import("leaflet");
 }) {
-  if (!leafletIcon) return null;
-
-  const vesselIcon = new leafletIcon.Icon({
-    iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
-    iconRetinaUrl:
-      "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
-    shadowUrl:
-      "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
-    iconSize: [25, 41],
-    iconAnchor: [12, 41],
-    popupAnchor: [1, -34],
-    shadowSize: [41, 41],
-  });
-
   return (
     <MapContainer
       center={[48.85, 2.6]}
@@ -77,7 +137,7 @@ function CarteMap({
         <Marker
           key={vessel.mmsi}
           position={[vessel.lat, vessel.lng]}
-          icon={vesselIcon}
+          icon={createVesselIcon(leafletLib, vessel)}
         >
           <Popup>
             <div className="text-sm space-y-1 min-w-[180px]">
@@ -87,6 +147,12 @@ function CarteMap({
               <p>
                 <span className="text-slate-500">MMSI:</span> {vessel.mmsi}
               </p>
+              {vessel.shipType != null && (
+                <p>
+                  <span className="text-slate-500">Type:</span>{" "}
+                  {getShipTypeLabel(vessel.shipType)}
+                </p>
+              )}
               <p>
                 <span className="text-slate-500">Vitesse:</span>{" "}
                 {vessel.speed.toFixed(1)} noeuds
@@ -105,7 +171,7 @@ function CarteMap({
       ))}
     </MapContainer>
   );
-}
+});
 
 export function CarteClient() {
   const [vessels, setVessels] = useState<Map<number, VesselData>>(new Map());
@@ -116,6 +182,15 @@ export function CarteClient() {
     typeof import("leaflet") | null
   >(null);
   const esRef = useRef<EventSource | null>(null);
+
+  // useRef buffer for vessel updates — decouples reception from rendering
+  const vesselsRef = useRef<Map<number, VesselData>>(new Map());
+  const flushTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // Flush ref → state periodically (max 2 renders/sec)
+  const flushToState = useCallback(() => {
+    setVessels(new Map(vesselsRef.current));
+  }, []);
 
   // Load leaflet
   useEffect(() => {
@@ -128,6 +203,17 @@ export function CarteClient() {
     }
     import("leaflet").then((L) => setLeafletLib(L));
   }, []);
+
+  // Start periodic flush timer
+  useEffect(() => {
+    flushTimerRef.current = setInterval(flushToState, 500);
+    return () => {
+      if (flushTimerRef.current) {
+        clearInterval(flushTimerRef.current);
+        flushTimerRef.current = null;
+      }
+    };
+  }, [flushToState]);
 
   // SSE connection via server proxy
   useEffect(() => {
@@ -158,34 +244,41 @@ export function CarteClient() {
             return;
           }
 
-          // Snapshot bulk: charge tous les navires en cache d'un coup
+          // Snapshot: apply immediately to ref AND state (no throttle for first load)
           if (data.type === "snapshot") {
             setStatus("connected");
             setError(null);
-            const bulk = new Map<number, VesselData>();
             for (const v of data.vessels) {
-              bulk.set(v.mmsi, v);
+              vesselsRef.current.set(v.mmsi, v);
             }
-            setVessels(bulk);
+            // Immediate flush for snapshots — user sees IDF boats instantly
+            flushToState();
             return;
           }
 
-          // Mise a jour individuelle en temps reel
+          // Batch update: apply to ref, will be flushed by timer
+          if (data.type === "batch") {
+            setStatus("connected");
+            for (const v of data.vessels) {
+              vesselsRef.current.set(v.mmsi, v);
+            }
+            return;
+          }
+
+          // Individual vessel update (legacy fallback)
           if (data.type === "vessel") {
             setStatus("connected");
-            setVessels((prev) => {
-              const next = new Map(prev);
-              next.set(data.mmsi, {
-                mmsi: data.mmsi,
-                name: data.name,
-                lat: data.lat,
-                lng: data.lng,
-                speed: data.speed,
-                course: data.course,
-                heading: data.heading,
-                timestamp: data.timestamp,
-              });
-              return next;
+            vesselsRef.current.set(data.mmsi, {
+              mmsi: data.mmsi,
+              name: data.name,
+              lat: data.lat,
+              lng: data.lng,
+              speed: data.speed,
+              course: data.course,
+              heading: data.heading,
+              timestamp: data.timestamp,
+              zone: data.zone,
+              shipType: data.shipType,
             });
           }
         } catch {
@@ -214,7 +307,7 @@ export function CarteClient() {
         esRef.current = null;
       }
     };
-  }, []);
+  }, [flushToState]);
 
   if (!mounted) {
     return (
@@ -276,7 +369,7 @@ export function CarteClient() {
       {/* Map */}
       <div className="flex-1 relative">
         {leafletLib ? (
-          <CarteMap vessels={vessels} leafletIcon={leafletLib} />
+          <CarteMap vessels={vessels} leafletLib={leafletLib} />
         ) : (
           <div className="flex items-center justify-center h-full">
             <Loader2 className="size-8 animate-spin text-[#1E3A5F]" />
