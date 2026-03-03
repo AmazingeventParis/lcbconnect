@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, memo, useCallback } from "react";
+import { useEffect, useRef, useState, useMemo, memo, useCallback } from "react";
 import dynamic from "next/dynamic";
 import {
   Loader2,
@@ -9,7 +9,9 @@ import {
   WifiOff,
   AlertTriangle,
   Radio,
+  Lock,
 } from "lucide-react";
+import { ECLUSES } from "@/lib/data/ecluses";
 
 const MapContainer = dynamic(
   () => import("react-leaflet").then((mod) => mod.MapContainer),
@@ -113,15 +115,39 @@ function createVesselIcon(L: typeof import("leaflet"), vessel: VesselData) {
   });
 }
 
+// Lock gate SVG — rectangular shape with horizontal bars
+const ECLUSE_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="16" viewBox="0 0 20 16">
+  <rect x="1" y="1" width="18" height="14" rx="2" fill="#0D6E6E" stroke="#fff" stroke-width="1.5"/>
+  <line x1="1" y1="5.5" x2="19" y2="5.5" stroke="#fff" stroke-width="1"/>
+  <line x1="1" y1="10.5" x2="19" y2="10.5" stroke="#fff" stroke-width="1"/>
+</svg>`;
+
+function createEcluseIcon(L: typeof import("leaflet")) {
+  return new L.DivIcon({
+    html: `<div style="width:20px;height:16px">${ECLUSE_SVG}</div>`,
+    className: "ecluse-marker",
+    iconSize: [20, 16],
+    iconAnchor: [10, 8],
+    popupAnchor: [0, -8],
+  });
+}
+
 type Status = "connecting" | "connected" | "error";
 
 const CarteMap = memo(function CarteMap({
   vessels,
   leafletLib,
+  showEcluses,
 }: {
   vessels: Map<number, VesselData>;
   leafletLib: typeof import("leaflet");
+  showEcluses: boolean;
 }) {
+  const ecluseIcon = useMemo(
+    () => createEcluseIcon(leafletLib),
+    [leafletLib]
+  );
+
   return (
     <MapContainer
       center={[48.85, 2.6]}
@@ -169,6 +195,47 @@ const CarteMap = memo(function CarteMap({
           </Popup>
         </Marker>
       ))}
+      {showEcluses &&
+        ECLUSES.map((ecluse) => (
+          <Marker
+            key={`ecluse-${ecluse.id}`}
+            position={[ecluse.lat, ecluse.lng]}
+            icon={ecluseIcon}
+          >
+            <Popup>
+              <div className="text-sm space-y-1 min-w-[180px]">
+                <p className="font-bold text-base">{ecluse.name}</p>
+                <p>
+                  <span className="text-slate-500">Voie navigable:</span>{" "}
+                  {ecluse.waterway}
+                </p>
+                {ecluse.vhf && (
+                  <p>
+                    <span className="text-slate-500">VHF:</span> Canal{" "}
+                    {ecluse.vhf}
+                  </p>
+                )}
+                {ecluse.phone && (
+                  <p>
+                    <span className="text-slate-500">Téléphone:</span>{" "}
+                    <a
+                      href={`tel:${ecluse.phone}`}
+                      className="text-blue-600 underline"
+                    >
+                      {ecluse.phone}
+                    </a>
+                  </p>
+                )}
+                {ecluse.hours && (
+                  <p>
+                    <span className="text-slate-500">Horaires:</span>{" "}
+                    {ecluse.hours}
+                  </p>
+                )}
+              </div>
+            </Popup>
+          </Marker>
+        ))}
     </MapContainer>
   );
 });
@@ -178,6 +245,7 @@ export function CarteClient() {
   const [status, setStatus] = useState<Status>("connecting");
   const [error, setError] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
+  const [showEcluses, setShowEcluses] = useState(true);
   const [leafletLib, setLeafletLib] = useState<
     typeof import("leaflet") | null
   >(null);
@@ -205,7 +273,7 @@ export function CarteClient() {
     if (!document.getElementById("vessel-marker-css")) {
       const style = document.createElement("style");
       style.id = "vessel-marker-css";
-      style.textContent = `.vessel-marker{transition:transform .5s linear!important}.leaflet-zoom-anim .vessel-marker{transition:none!important}`;
+      style.textContent = `.vessel-marker{transition:transform .5s linear!important}.leaflet-zoom-anim .vessel-marker{transition:none!important}.ecluse-marker{transition:none!important}`;
       document.head.appendChild(style);
     }
     import("leaflet").then((L) => setLeafletLib(L));
@@ -338,6 +406,18 @@ export function CarteClient() {
           <span className="text-sm text-slate-500">
             {vessels.size} navire{vessels.size !== 1 ? "s" : ""}
           </span>
+          <button
+            onClick={() => setShowEcluses((v) => !v)}
+            className={`flex items-center gap-1 px-2 py-1 rounded text-xs font-medium transition-colors ${
+              showEcluses
+                ? "bg-teal-100 text-teal-700"
+                : "bg-slate-100 text-slate-400"
+            }`}
+            title={showEcluses ? "Masquer les écluses" : "Afficher les écluses"}
+          >
+            <Lock className="size-3.5" />
+            <span className="hidden sm:inline">Écluses</span>
+          </button>
           <div className="flex items-center gap-1.5">
             {status === "connected" ? (
               <>
@@ -376,7 +456,7 @@ export function CarteClient() {
       {/* Map */}
       <div className="flex-1 relative">
         {leafletLib ? (
-          <CarteMap vessels={vessels} leafletLib={leafletLib} />
+          <CarteMap vessels={vessels} leafletLib={leafletLib} showEcluses={showEcluses} />
         ) : (
           <div className="flex items-center justify-center h-full">
             <Loader2 className="size-8 animate-spin text-[#1E3A5F]" />
