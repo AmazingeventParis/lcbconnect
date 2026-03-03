@@ -19,6 +19,8 @@ import {
   Image,
   FileSpreadsheet,
   File,
+  Download,
+  ExternalLink,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -731,9 +733,14 @@ export function AdminDocuments({ profile }: AdminDocumentsProps) {
                     </div>
 
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium truncate">
+                      <a
+                        href={doc.file_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-sm font-medium truncate block hover:underline hover:text-[#1E3A5F]"
+                      >
                         {doc.title}
-                      </p>
+                      </a>
                       <div className="flex items-center gap-2 mt-0.5 flex-wrap">
                         {doc.category !== "divers" && (
                           <span className="text-xs text-muted-foreground">
@@ -760,6 +767,37 @@ export function AdminDocuments({ profile }: AdminDocumentsProps) {
                     </Badge>
 
                     <div className="flex items-center gap-1 shrink-0">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-7 w-7 p-0"
+                        asChild
+                        title="Ouvrir"
+                      >
+                        <a
+                          href={doc.file_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          <ExternalLink className="size-3.5" />
+                        </a>
+                      </Button>
+
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-7 w-7 p-0"
+                        asChild
+                        title="Télécharger"
+                      >
+                        <a
+                          href={doc.file_url}
+                          download
+                        >
+                          <Download className="size-3.5" />
+                        </a>
+                      </Button>
+
                       <Button
                         variant="ghost"
                         size="sm"

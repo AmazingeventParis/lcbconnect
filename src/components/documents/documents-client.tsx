@@ -44,14 +44,9 @@ export function DocumentsClient({ profile }: DocumentsClientProps) {
     let query = (supabase as any)
       .from("lcb_documents")
       .select("*")
+      .eq("is_published", true)
       .order("year", { ascending: false })
       .order("created_at", { ascending: false });
-
-    // Membres standard ne voient que les documents publiés
-    // CA/Bureau voient tout (publiés + brouillons)
-    if (!hasMinRole(profile.role, "ca")) {
-      query = query.eq("is_published", true);
-    }
 
     if (categoryFilter !== "toutes") {
       query = query.eq("category", categoryFilter);
