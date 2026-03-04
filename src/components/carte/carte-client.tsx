@@ -41,6 +41,8 @@ interface VesselData {
   timestamp: string;
   zone?: string;
   shipType?: number;
+  realLat?: number;
+  realLng?: number;
 }
 
 // Ship type 70-89 = cargo/tanker/peniche
@@ -189,7 +191,7 @@ const CarteMap = memo(function CarteMap({
               </p>
               <p>
                 <span className="text-slate-500">Position:</span>{" "}
-                {vessel.lat.toFixed(4)}, {vessel.lng.toFixed(4)}
+                {(vessel.realLat ?? vessel.lat).toFixed(4)}, {(vessel.realLng ?? vessel.lng).toFixed(4)}
               </p>
             </div>
           </Popup>
@@ -255,9 +257,53 @@ export function CarteClient() {
   const vesselsRef = useRef<Map<number, VesselData>>(new Map());
   const flushTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  // Flush ref → state periodically (max 2 renders/sec)
+  // Real AIS positions — base for dead reckoning interpolation
+  const realPositionsRef = useRef<Map<number, { lat: number; lng: number; speed: number; heading: number; course: number; receivedAt: number }>>(new Map());
+
+  // Flush ref → state with dead reckoning interpolation (max 2 renders/sec)
   const flushToState = useCallback(() => {
-    setVessels(new Map(vesselsRef.current));
+    const now = Date.now();
+    const predicted = new Map<number, VesselData>();
+
+    for (const [mmsi, vessel] of vesselsRef.current) {
+      const real = realPositionsRef.current.get(mmsi);
+      // No interpolation if: no real data or speed too low
+      if (!real || real.speed < 0.5) {
+        predicted.set(mmsi, vessel);
+        continue;
+      }
+
+      const elapsed = (now - real.receivedAt) / 1000;
+      // Cap at 120s — beyond that, extrapolation is too uncertain
+      const cappedElapsed = Math.min(elapsed, 120);
+
+      const speedMs = real.speed * 0.5144; // knots → m/s
+      const distance = speedMs * cappedElapsed;
+
+      // Use heading if valid, otherwise course
+      const deg = (real.heading !== 511 && real.heading >= 0 && real.heading < 360)
+        ? real.heading
+        : (real.course >= 0 && real.course < 360 ? real.course : null);
+
+      if (deg === null || distance < 0.1) {
+        predicted.set(mmsi, vessel);
+        continue;
+      }
+
+      const rad = (deg * Math.PI) / 180;
+      const deltaLat = (distance * Math.cos(rad)) / 111320;
+      const deltaLng = (distance * Math.sin(rad)) / (111320 * Math.cos((real.lat * Math.PI) / 180));
+
+      predicted.set(mmsi, {
+        ...vessel,
+        lat: real.lat + deltaLat,
+        lng: real.lng + deltaLng,
+        realLat: real.lat,
+        realLng: real.lng,
+      });
+    }
+
+    setVessels(predicted);
   }, []);
 
   // Load leaflet
@@ -323,8 +369,13 @@ export function CarteClient() {
           if (data.type === "snapshot") {
             setStatus("connected");
             setError(null);
+            const recvAt = Date.now();
             for (const v of data.vessels) {
               vesselsRef.current.set(v.mmsi, v);
+              realPositionsRef.current.set(v.mmsi, {
+                lat: v.lat, lng: v.lng, speed: v.speed,
+                heading: v.heading, course: v.course, receivedAt: recvAt,
+              });
             }
             // Immediate flush for snapshots — user sees IDF boats instantly
             flushToState();
@@ -334,8 +385,13 @@ export function CarteClient() {
           // Batch update: apply to ref, will be flushed by timer
           if (data.type === "batch") {
             setStatus("connected");
+            const recvAt = Date.now();
             for (const v of data.vessels) {
               vesselsRef.current.set(v.mmsi, v);
+              realPositionsRef.current.set(v.mmsi, {
+                lat: v.lat, lng: v.lng, speed: v.speed,
+                heading: v.heading, course: v.course, receivedAt: recvAt,
+              });
             }
             return;
           }
@@ -354,6 +410,10 @@ export function CarteClient() {
               timestamp: data.timestamp,
               zone: data.zone,
               shipType: data.shipType,
+            });
+            realPositionsRef.current.set(data.mmsi, {
+              lat: data.lat, lng: data.lng, speed: data.speed,
+              heading: data.heading, course: data.course, receivedAt: Date.now(),
             });
           }
         } catch {
