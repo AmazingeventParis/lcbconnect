@@ -5,10 +5,14 @@ const WS_URL = "wss://stream.aisstream.io/v0/stream";
 
 export type VesselZone = "idf" | "limitrophes" | "autres";
 
-// 3 connexions avec priorite croissante
-// Connexion 1 : IDF (prioritaire, se connecte immediatement)
-// Connexion 2 : Limitrophes (se connecte apres 1.5s)
-// Connexion 3 : Sud/Est (se connecte apres 3s)
+// 7 connexions couvrant TOUTES les voies navigables de France
+// Connexion 1 : IDF (prioritaire, immediat)
+// Connexion 2 : Nord-Picardie-Normandie (1.5s)
+// Connexion 3 : Centre-Bourgogne (3s)
+// Connexion 4 : Est / Alsace-Lorraine (4.5s)
+// Connexion 5 : Rhone-Mediterranee (6s)
+// Connexion 6 : Sud-Ouest (7.5s)
+// Connexion 7 : Ouest-Bretagne (9s)
 const CONNECTIONS: {
   name: string;
   zone: VesselZone;
@@ -27,23 +31,58 @@ const CONNECTIONS: {
     ],
   },
   {
-    name: "Limitrophes",
+    name: "Nord-Picardie-Normandie",
     zone: "limitrophes",
     delay: 1500,
     boxes: [
-      [[49.8, 2.0], [50.8, 3.8]],   // Nord (Dunkerque-Lille)
-      [[47.0, 0.5], [48.3, 2.8]],   // Loire / Val de Loire
-      [[48.8, -1.5], [49.5, 0.8]],  // Normandie interieur (Seine aval)
+      [[49.5, 1.5], [50.8, 4.1]],   // Nord + Somme + Sambre (Dunkerque-Lille-Amiens-Maubeuge)
+      [[48.8, -1.5], [49.5, 0.8]],  // Normandie (Seine aval → Le Havre)
+      [[48.6, 4.6], [50.2, 5.7]],   // Meuse (Commercy → Givet)
     ],
   },
   {
-    name: "Sud-Est",
-    zone: "autres",
+    name: "Centre-Bourgogne",
+    zone: "limitrophes",
     delay: 3000,
     boxes: [
-      [[43.7, 4.2], [46.8, 5.2]],   // Rhone-Saone (Lyon-Arles)
-      [[47.5, 7.2], [49.0, 8.2]],   // Rhin (Strasbourg-Mulhouse)
-      [[48.8, 5.8], [49.5, 6.5]],   // Moselle (Metz-Thionville)
+      [[47.0, 0.5], [48.3, 2.8]],   // Loire / Val de Loire
+      [[46.3, 2.6], [48.8, 5.5]],   // Nivernais + Bourgogne + Centre + lateral Loire + Champagne-Bourgogne
+    ],
+  },
+  {
+    name: "Est",
+    zone: "autres",
+    delay: 4500,
+    boxes: [
+      [[47.0, 5.1], [49.5, 8.2]],   // Rhin + Moselle + Vosges + Marne-Rhin + Rhone au Rhin sud
+    ],
+  },
+  {
+    name: "Rhone-Mediterranee",
+    zone: "autres",
+    delay: 6000,
+    boxes: [
+      [[43.3, 3.5], [46.8, 5.2]],   // Rhone-Saone (Lyon-Arles) + Canal Rhone a Sete
+    ],
+  },
+  {
+    name: "Sud-Ouest",
+    zone: "autres",
+    delay: 7500,
+    boxes: [
+      [[43.1, 1.3], [43.8, 3.6]],   // Canal du Midi (Toulouse → Sete)
+      [[43.5, -0.3], [44.7, 1.6]],  // Canal lateral Garonne + Lot
+      [[44.7, -1.2], [45.7, -0.1]], // Gironde / Garonne / Dordogne (Bordeaux)
+      [[45.5, -1.1], [46.1, 0.3]],  // Charente (Rochefort-Angouleme)
+    ],
+  },
+  {
+    name: "Ouest-Bretagne",
+    zone: "autres",
+    delay: 9000,
+    boxes: [
+      [[47.1, -4.2], [48.7, -1.4]], // Bretagne (Ille-et-Rance, Vilaine, Nantes-Brest)
+      [[43.3, -1.6], [43.9, -0.4]], // Adour (Bayonne)
     ],
   },
 ];
