@@ -30,11 +30,6 @@ export function PWAInstallPrompt() {
     return () => clearTimeout(timer);
   }, []);
 
-  const handleInstall = useCallback(() => {
-    window.location.href = "/LCBconnect.apk";
-    setShowPrompt(false);
-  }, []);
-
   const handleDismiss = useCallback(() => {
     setShowPrompt(false);
     localStorage.setItem(DISMISS_KEY, Date.now().toString());
@@ -59,9 +54,13 @@ export function PWAInstallPrompt() {
         </div>
 
         <div className="flex items-center gap-1">
-          <Button size="sm" onClick={handleInstall}>
+          <a
+            href="/LCBconnect.apk"
+            download="LCBconnect.apk"
+            className="inline-flex items-center justify-center rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground shadow-sm hover:bg-primary/90"
+          >
             Installer
-          </Button>
+          </a>
           <Button
             variant="ghost"
             size="icon"
