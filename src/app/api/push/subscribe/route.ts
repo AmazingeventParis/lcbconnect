@@ -13,7 +13,7 @@ export async function POST(request: NextRequest) {
     }
 
     const { endpoint, p256dh, auth, type } = await request.json();
-    const subType = type === "fcm" ? "fcm" : "web";
+    const subType = type === "ntfy" ? "ntfy" : "web";
 
     if (!endpoint) {
       return NextResponse.json(
@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Web Push requires p256dh + auth; FCM only needs the token as endpoint
+    // Web Push requires p256dh + auth; ntfy only needs the topic as endpoint
     if (subType === "web" && (!p256dh || !auth)) {
       return NextResponse.json(
         { error: "Champs requis manquants (web push)" },

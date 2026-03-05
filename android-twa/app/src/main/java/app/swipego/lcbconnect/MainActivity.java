@@ -19,13 +19,13 @@ import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
-import com.google.firebase.messaging.FirebaseMessaging;
+import java.util.UUID;
 
 public class MainActivity extends Activity {
 
     private static final String APP_URL = "https://lcbconnect.swipego.app";
     private static final String PREFS_NAME = "lcb_prefs";
-    private static final String FCM_TOKEN_KEY = "fcm_token";
+    private static final String SUBSCRIBER_ID_KEY = "subscriber_id";
     private static final int FILE_CHOOSER_REQUEST = 1;
     private static final int NOTIFICATION_PERMISSION_REQUEST = 2;
 
@@ -41,6 +41,9 @@ public class MainActivity extends Activity {
         window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
         window.setStatusBarColor(Color.parseColor("#1E3A5F"));
         window.setNavigationBarColor(Color.parseColor("#1E3A5F"));
+
+        // Generate subscriber ID on first launch
+        String subscriberId = getOrCreateSubscriberId();
 
         webView = new WebView(this);
 
@@ -60,7 +63,7 @@ public class MainActivity extends Activity {
         cookieManager.setAcceptCookie(true);
         cookieManager.setAcceptThirdPartyCookies(webView, true);
 
-        // Add JavaScript interface for FCM bridge
+        // Add JavaScript interface for ntfy bridge
         webView.addJavascriptInterface(new WebAppInterface(this), "LCBNative");
 
         // Handle navigation inside the app
@@ -68,18 +71,16 @@ public class MainActivity extends Activity {
             @Override
             public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
                 String url = request.getUrl().toString();
-                // Keep app URLs inside the WebView
                 if (url.startsWith(APP_URL)) {
                     return false;
                 }
-                // Open external links in browser
                 Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
                 startActivity(intent);
                 return true;
             }
         });
 
-        // Handle file uploads (for photos, documents)
+        // Handle file uploads
         webView.setWebChromeClient(new WebChromeClient() {
             @Override
             public boolean onShowFileChooser(WebView webView, ValueCallback<Uri[]> callback,
@@ -102,8 +103,15 @@ public class MainActivity extends Activity {
         // Request notification permission (Android 13+)
         requestNotificationPermission();
 
-        // Initialize FCM token
-        initFCMToken();
+        // Start ntfy listener service
+        String topic = "lcb-" + subscriberId;
+        Intent serviceIntent = new Intent(this, NtfyListenerService.class);
+        serviceIntent.putExtra("topic", topic);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            startForegroundService(serviceIntent);
+        } else {
+            startService(serviceIntent);
+        }
 
         // Load URL — handle deep link from notification if present
         String loadUrl = APP_URL;
@@ -116,6 +124,16 @@ public class MainActivity extends Activity {
         setContentView(webView);
     }
 
+    private String getOrCreateSubscriberId() {
+        SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+        String id = prefs.getString(SUBSCRIBER_ID_KEY, null);
+        if (id == null || id.isEmpty()) {
+            id = UUID.randomUUID().toString();
+            prefs.edit().putString(SUBSCRIBER_ID_KEY, id).apply();
+        }
+        return id;
+    }
+
     private void requestNotificationPermission() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             if (checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS)
@@ -126,14 +144,6 @@ public class MainActivity extends Activity {
                 );
             }
         }
-    }
-
-    private void initFCMToken() {
-        FirebaseMessaging.getInstance().getToken()
-                .addOnSuccessListener(token -> {
-                    SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
-                    prefs.edit().putString(FCM_TOKEN_KEY, token).apply();
-                });
     }
 
     private String getDeepLinkFromIntent(Intent intent) {

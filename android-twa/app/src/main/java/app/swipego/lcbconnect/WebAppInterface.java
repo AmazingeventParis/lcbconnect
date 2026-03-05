@@ -7,7 +7,7 @@ import android.webkit.JavascriptInterface;
 public class WebAppInterface {
 
     private static final String PREFS_NAME = "lcb_prefs";
-    private static final String FCM_TOKEN_KEY = "fcm_token";
+    private static final String SUBSCRIBER_ID_KEY = "subscriber_id";
 
     private final Context context;
 
@@ -16,9 +16,9 @@ public class WebAppInterface {
     }
 
     @JavascriptInterface
-    public String getFCMToken() {
+    public String getSubscriberId() {
         SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
-        return prefs.getString(FCM_TOKEN_KEY, "");
+        return prefs.getString(SUBSCRIBER_ID_KEY, "");
     }
 
     @JavascriptInterface

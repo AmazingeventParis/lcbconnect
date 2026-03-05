@@ -5,7 +5,7 @@ import { useEffect, useRef } from "react";
 declare global {
   interface Window {
     LCBNative?: {
-      getFCMToken: () => string;
+      getSubscriberId: () => string;
       isNativeApp: () => boolean;
     };
   }
@@ -20,38 +20,37 @@ function urlBase64ToUint8Array(base64String: string) {
   return outputArray;
 }
 
-async function subscribeFCM() {
-  // Try up to 3 times with 2s delay (token might not be ready yet)
+async function subscribeNtfy() {
+  // Retry up to 3 times (subscriber ID might not be ready yet)
   for (let attempt = 0; attempt < 3; attempt++) {
-    const token = window.LCBNative?.getFCMToken();
-    if (token) {
-      console.log("[Push] FCM token obtained:", token.substring(0, 20) + "...");
+    const subscriberId = window.LCBNative?.getSubscriberId();
+    if (subscriberId) {
+      const topic = `lcb-${subscriberId}`;
+      console.log("[Push] ntfy topic:", topic);
       const res = await fetch("/api/push/subscribe", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ endpoint: token, type: "fcm" }),
+        body: JSON.stringify({ endpoint: topic, type: "ntfy" }),
       });
       if (res.ok) {
-        console.log("[Push] FCM subscription saved to server");
+        console.log("[Push] ntfy subscription saved to server");
         return true;
       }
-      console.error("[Push] FCM subscribe failed:", res.status);
+      console.error("[Push] ntfy subscribe failed:", res.status);
       return false;
     }
-    console.log(`[Push] FCM token not ready, retry ${attempt + 1}/3...`);
+    console.log(`[Push] Subscriber ID not ready, retry ${attempt + 1}/3...`);
     await new Promise((r) => setTimeout(r, 2000));
   }
-  console.error("[Push] FCM token not available after retries");
+  console.error("[Push] Subscriber ID not available after retries");
   return false;
 }
 
 async function subscribeWebPush() {
   const vapidKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
-  console.log("[Push] VAPID key present:", !!vapidKey);
   if (!vapidKey) return false;
 
   const registration = await navigator.serviceWorker.ready;
-  console.log("[Push] SW ready");
 
   const existing = await registration.pushManager.getSubscription();
   if (existing) {
@@ -59,16 +58,13 @@ async function subscribeWebPush() {
     return true;
   }
 
-  console.log("[Push] Requesting permission...");
   const permission = await Notification.requestPermission();
-  console.log("[Push] Permission:", permission);
   if (permission !== "granted") return false;
 
   const subscription = await registration.pushManager.subscribe({
     userVisibleOnly: true,
     applicationServerKey: urlBase64ToUint8Array(vapidKey),
   });
-  console.log("[Push] Subscribed:", subscription.endpoint);
 
   const json = subscription.toJSON();
   await fetch("/api/push/subscribe", {
@@ -82,7 +78,7 @@ async function subscribeWebPush() {
     }),
   });
 
-  console.log("[Push] Web Push subscription saved to server");
+  console.log("[Push] Web Push subscription saved");
   return true;
 }
 
@@ -93,28 +89,19 @@ export function PushManager() {
     if (subscribed.current) return;
 
     const isNative = !!window.LCBNative?.isNativeApp();
-    console.log("[Push] Native app detected:", isNative);
+    console.log("[Push] Native app:", isNative);
 
     if (isNative) {
-      // FCM path for APK
-      subscribeFCM().then((ok) => {
+      // ntfy path for APK
+      subscribeNtfy().then((ok) => {
         if (ok) subscribed.current = true;
       });
     } else {
-      // Web Push path for browsers
-      const hasSW = "serviceWorker" in navigator;
-      const hasPush = "PushManager" in window;
-      console.log("[Push] Support check:", { hasSW, hasPush });
-
-      if (!hasSW || !hasPush) {
-        console.log("[Push] Not supported — skipping");
-        return;
-      }
+      // Web Push for browsers
+      if (!("serviceWorker" in navigator) || !("PushManager" in window)) return;
 
       subscribeWebPush()
-        .then((ok) => {
-          if (ok) subscribed.current = true;
-        })
+        .then((ok) => { if (ok) subscribed.current = true; })
         .catch((err) => console.error("[Push] Error:", err));
     }
   }, []);

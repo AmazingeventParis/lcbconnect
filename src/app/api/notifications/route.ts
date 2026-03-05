@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient, createServiceClient } from "@/lib/supabase/server";
 import { sendPushToUser } from "@/lib/web-push";
-import { sendFCMToTokens } from "@/lib/fcm";
+import { sendNtfyNotifications } from "@/lib/ntfy";
 
 interface NotificationPayload {
   type: string;
@@ -284,9 +284,9 @@ export async function POST(request: NextRequest) {
 
         if (subs && subs.length > 0) {
           const webSubsByUser = new Map<string, typeof subs>();
-          const fcmSubsByUser = new Map<string, typeof subs>();
+          const ntfySubsByUser = new Map<string, typeof subs>();
           for (const sub of subs) {
-            const map = sub.type === "fcm" ? fcmSubsByUser : webSubsByUser;
+            const map = sub.type === "ntfy" ? ntfySubsByUser : webSubsByUser;
             const list = map.get(sub.user_id) || [];
             list.push(sub);
             map.set(sub.user_id, list);
@@ -313,14 +313,12 @@ export async function POST(request: NextRequest) {
               );
             }
 
-            // FCM
-            const fcmSubs = fcmSubsByUser.get(notif.user_id);
-            if (fcmSubs && fcmSubs.length > 0) {
-              const tokens = fcmSubs.map((s) => s.endpoint);
+            // ntfy (APK Android)
+            const ntfySubs = ntfySubsByUser.get(notif.user_id);
+            if (ntfySubs && ntfySubs.length > 0) {
+              const topics = ntfySubs.map((s) => s.endpoint);
               pushPromises.push(
-                sendFCMToTokens(tokens, payload)
-                  .then(({ expired }) => { allExpired.push(...expired); })
-                  .catch(() => {}),
+                sendNtfyNotifications(topics, payload).catch(() => {}),
               );
             }
           }
