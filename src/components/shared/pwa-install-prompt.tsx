@@ -11,6 +11,9 @@ export function PWAInstallPrompt() {
   const [showPrompt, setShowPrompt] = useState(false);
 
   useEffect(() => {
+    // Don't show inside the APK (user-agent contains LCBconnectApp)
+    if (/LCBconnectApp/i.test(navigator.userAgent)) return;
+
     // Don't show if already running as installed app (TWA or PWA)
     if (window.matchMedia("(display-mode: standalone)").matches) return;
 
