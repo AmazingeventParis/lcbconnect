@@ -1,4 +1,0 @@
-#Thu Mar 05 08:54:38 UTC 2026
-base.0=/home/coder/projects/lcbconnect/android-twa/app/build/intermediates/dex/release/minifyReleaseWithR8/classes.dex
-renamed.0=classes.dex
-path.0=classes.dex
