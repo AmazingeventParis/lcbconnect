@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { Sidebar } from "@/components/layout/sidebar";
 import { MobileNav } from "@/components/layout/mobile-nav";
 import { Header } from "@/components/layout/header";
+import { PushManager } from "@/components/notifications/push-manager";
 
 export default async function AppLayout({
   children,
@@ -47,6 +48,7 @@ export default async function AppLayout({
 
       {/* Mobile bottom navigation */}
       <MobileNav profile={profile} />
+      <PushManager />
     </div>
   );
 }

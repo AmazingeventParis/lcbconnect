@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient, createServiceClient } from "@/lib/supabase/server";
+import { sendPushToUser } from "@/lib/web-push";
 
 interface NotificationPayload {
   type: string;
@@ -272,6 +273,46 @@ export async function POST(request: NextRequest) {
 
       if (filtered.length > 0) {
         await service.from("lcb_notifications").insert(filtered);
+
+        // Send push notifications
+        const recipientIds = [...new Set(filtered.map((n) => n.user_id))];
+        const { data: subs } = await service
+          .from("lcb_push_subscriptions")
+          .select("user_id, endpoint, p256dh, auth")
+          .in("user_id", recipientIds);
+
+        if (subs && subs.length > 0) {
+          const subsByUser = new Map<string, typeof subs>();
+          for (const sub of subs) {
+            const list = subsByUser.get(sub.user_id) || [];
+            list.push(sub);
+            subsByUser.set(sub.user_id, list);
+          }
+
+          const pushPromises: Promise<void>[] = [];
+          for (const notif of filtered) {
+            const userSubs = subsByUser.get(notif.user_id);
+            if (!userSubs) continue;
+            pushPromises.push(
+              sendPushToUser(userSubs, {
+                title: notif.title,
+                body: notif.body || "",
+                url: notif.link || "/",
+                tag: `lcb-${notif.type}`,
+              })
+                .then(async ({ expired }) => {
+                  if (expired.length > 0) {
+                    await service
+                      .from("lcb_push_subscriptions")
+                      .delete()
+                      .in("endpoint", expired);
+                  }
+                })
+                .catch(() => {}),
+            );
+          }
+          Promise.allSettled(pushPromises);
+        }
       }
 
       return NextResponse.json({ ok: true, count: filtered.length });
