@@ -1,0 +1,54 @@
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    namespace 'app.swipego.lcbconnect'
+    compileSdk 34
+
+    defaultConfig {
+        applicationId "app.swipego.lcbconnect"
+        minSdk 24
+        targetSdk 34
+        versionCode 1
+        versionName "1.0.0"
+
+        // TWA configuration
+        manifestPlaceholders = [
+            hostName    : "lcbconnect.swipego.app",
+            defaultUrl  : "https://lcbconnect.swipego.app",
+            launcherName: "LCBconnect",
+            assetStatements: '[{"relation": ["delegate_permission/common.handle_all_urls"],' +
+                '"target": {"namespace": "web", "site": "https://lcbconnect.swipego.app"}}]'
+        ]
+    }
+
+    signingConfigs {
+        release {
+            storeFile file("../keystore.jks")
+            storePassword "lcbconnect2026"
+            keyAlias "lcbconnect"
+            keyPassword "lcbconnect2026"
+        }
+    }
+
+    buildTypes {
+        release {
+            signingConfig signingConfigs.release
+            minifyEnabled true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt')
+        }
+        debug {
+            signingConfig signingConfigs.release
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+}
+
+dependencies {
+    implementation 'com.google.androidbrowserhelper:androidbrowserhelper:2.5.0'
+}

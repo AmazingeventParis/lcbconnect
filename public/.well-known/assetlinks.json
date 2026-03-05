@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "app.swipego.lcbconnect",
+      "sha256_cert_fingerprints": [
+        "4B:FD:4C:E3:BA:AB:29:48:B7:E1:2F:A4:DE:8E:9D:F8:11:55:55:C2:3B:C4:2D:36:FB:05:55:C0:1D:46:CE:59"
+      ]
+    }
+  }
+]

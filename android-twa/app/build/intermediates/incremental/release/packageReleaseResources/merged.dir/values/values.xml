@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <bool name="enableNotification">true</bool>
+    <color name="backgroundColor">#F5F0EB</color>
+    <color name="colorPrimary">#1E3A5F</color>
+    <color name="colorPrimaryDark">#162D4A</color>
+    <color name="navigationColor">#1E3A5F</color>
+    <color name="navigationDividerColor">#1E3A5F</color>
+    <string name="app_name">LCBconnect</string>
+    <style name="Theme.LauncherTheme" parent="android:Theme.Light.NoTitleBar">
+        <item name="android:windowBackground">@color/backgroundColor</item>
+        <item name="android:statusBarColor">@color/colorPrimary</item>
+        <item name="android:navigationBarColor">@color/navigationColor</item>
+    </style>
+</resources>

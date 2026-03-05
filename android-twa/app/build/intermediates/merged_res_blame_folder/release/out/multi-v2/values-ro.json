@@ -1,0 +1,36 @@
+{
+    "logs": [
+        {
+            "outputFile": "app.swipego.lcbconnect.app-mergeReleaseResources-5:/values-ro/values-ro.xml",
+            "map": [
+                {
+                    "source": "/home/coder/.gradle/caches/transforms-3/91c77ca092d540b4ed5c3135b9c7a52a/transformed/browser-1.4.0/res/values-ro/values-ro.xml",
+                    "from": {
+                        "startLines": "2,3,4,5",
+                        "startColumns": "4,4,4,4",
+                        "startOffsets": "55,162,264,379",
+                        "endColumns": "106,101,114,104",
+                        "endOffsets": "157,259,374,479"
+                    }
+                },
+                {
+                    "source": "/home/coder/.gradle/caches/transforms-3/643c66effa7aeda37e0272f9c7c1f534/transformed/core-1.1.0/res/values-ro/values-ro.xml",
+                    "from": {
+                        "startLines": "2",
+                        "startColumns": "4",
+                        "startOffsets": "55",
+                        "endColumns": "100",
+                        "endOffsets": "151"
+                    },
+                    "to": {
+                        "startLines": "6",
+                        "startColumns": "4",
+                        "startOffsets": "484",
+                        "endColumns": "100",
+                        "endOffsets": "580"
+                    }
+                }
+            ]
+        }
+    ]
+}

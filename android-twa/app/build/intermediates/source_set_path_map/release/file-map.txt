@@ -1,0 +1,10 @@
+app.swipego.lcbconnect.app-core-1.1.0-0 /home/coder/.gradle/caches/transforms-3/643c66effa7aeda37e0272f9c7c1f534/transformed/core-1.1.0/res
+app.swipego.lcbconnect.app-androidbrowserhelper-2.5.0-1 /home/coder/.gradle/caches/transforms-3/806ad10ac7da0fa970b68ea44b55a093/transformed/androidbrowserhelper-2.5.0/res
+app.swipego.lcbconnect.app-browser-1.4.0-2 /home/coder/.gradle/caches/transforms-3/91c77ca092d540b4ed5c3135b9c7a52a/transformed/browser-1.4.0/res
+app.swipego.lcbconnect.app-pngs-3 /home/coder/projects/lcbconnect/android-twa/app/build/generated/res/pngs/release
+app.swipego.lcbconnect.app-resValues-4 /home/coder/projects/lcbconnect/android-twa/app/build/generated/res/resValues/release
+app.swipego.lcbconnect.app-packageReleaseResources-5 /home/coder/projects/lcbconnect/android-twa/app/build/intermediates/incremental/release/packageReleaseResources/merged.dir
+app.swipego.lcbconnect.app-packageReleaseResources-6 /home/coder/projects/lcbconnect/android-twa/app/build/intermediates/incremental/release/packageReleaseResources/stripped.dir
+app.swipego.lcbconnect.app-merged_res-7 /home/coder/projects/lcbconnect/android-twa/app/build/intermediates/merged_res/release
+app.swipego.lcbconnect.app-main-8 /home/coder/projects/lcbconnect/android-twa/app/src/main/res
+app.swipego.lcbconnect.app-release-9 /home/coder/projects/lcbconnect/android-twa/app/src/release/res
