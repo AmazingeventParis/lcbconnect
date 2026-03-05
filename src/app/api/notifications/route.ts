@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient, createServiceClient } from "@/lib/supabase/server";
 import { sendPushToUser } from "@/lib/web-push";
+import { sendFCMToTokens } from "@/lib/fcm";
 
 interface NotificationPayload {
   type: string;
@@ -278,40 +279,61 @@ export async function POST(request: NextRequest) {
         const recipientIds = [...new Set(filtered.map((n) => n.user_id))];
         const { data: subs } = await service
           .from("lcb_push_subscriptions")
-          .select("user_id, endpoint, p256dh, auth")
+          .select("user_id, endpoint, p256dh, auth, type")
           .in("user_id", recipientIds);
 
         if (subs && subs.length > 0) {
-          const subsByUser = new Map<string, typeof subs>();
+          const webSubsByUser = new Map<string, typeof subs>();
+          const fcmSubsByUser = new Map<string, typeof subs>();
           for (const sub of subs) {
-            const list = subsByUser.get(sub.user_id) || [];
+            const map = sub.type === "fcm" ? fcmSubsByUser : webSubsByUser;
+            const list = map.get(sub.user_id) || [];
             list.push(sub);
-            subsByUser.set(sub.user_id, list);
+            map.set(sub.user_id, list);
           }
 
           const pushPromises: Promise<void>[] = [];
+          const allExpired: string[] = [];
+
           for (const notif of filtered) {
-            const userSubs = subsByUser.get(notif.user_id);
-            if (!userSubs) continue;
-            pushPromises.push(
-              sendPushToUser(userSubs, {
-                title: notif.title,
-                body: notif.body || "",
-                url: notif.link || "/",
-                tag: `lcb-${notif.type}`,
-              })
-                .then(async ({ expired }) => {
-                  if (expired.length > 0) {
-                    await service
-                      .from("lcb_push_subscriptions")
-                      .delete()
-                      .in("endpoint", expired);
-                  }
-                })
-                .catch(() => {}),
-            );
+            const payload = {
+              title: notif.title,
+              body: notif.body || "",
+              url: notif.link || "/",
+              tag: `lcb-${notif.type}`,
+            };
+
+            // Web Push
+            const webSubs = webSubsByUser.get(notif.user_id);
+            if (webSubs && webSubs.length > 0) {
+              pushPromises.push(
+                sendPushToUser(webSubs, payload)
+                  .then(({ expired }) => { allExpired.push(...expired); })
+                  .catch(() => {}),
+              );
+            }
+
+            // FCM
+            const fcmSubs = fcmSubsByUser.get(notif.user_id);
+            if (fcmSubs && fcmSubs.length > 0) {
+              const tokens = fcmSubs.map((s) => s.endpoint);
+              pushPromises.push(
+                sendFCMToTokens(tokens, payload)
+                  .then(({ expired }) => { allExpired.push(...expired); })
+                  .catch(() => {}),
+              );
+            }
           }
-          Promise.allSettled(pushPromises);
+
+          await Promise.allSettled(pushPromises);
+
+          // Cleanup all expired tokens at once
+          if (allExpired.length > 0) {
+            await service
+              .from("lcb_push_subscriptions")
+              .delete()
+              .in("endpoint", allExpired);
+          }
         }
       }
 

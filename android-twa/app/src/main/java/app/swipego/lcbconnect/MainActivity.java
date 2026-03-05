@@ -1,12 +1,14 @@
 package app.swipego.lcbconnect;
 
+import android.Manifest;
 import android.app.Activity;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.webkit.CookieManager;
@@ -17,12 +19,18 @@ import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
+import com.google.firebase.messaging.FirebaseMessaging;
+
 public class MainActivity extends Activity {
 
     private static final String APP_URL = "https://lcbconnect.swipego.app";
+    private static final String PREFS_NAME = "lcb_prefs";
+    private static final String FCM_TOKEN_KEY = "fcm_token";
+    private static final int FILE_CHOOSER_REQUEST = 1;
+    private static final int NOTIFICATION_PERMISSION_REQUEST = 2;
+
     private WebView webView;
     private ValueCallback<Uri[]> fileUploadCallback;
-    private static final int FILE_CHOOSER_REQUEST = 1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,6 +59,9 @@ public class MainActivity extends Activity {
         CookieManager cookieManager = CookieManager.getInstance();
         cookieManager.setAcceptCookie(true);
         cookieManager.setAcceptThirdPartyCookies(webView, true);
+
+        // Add JavaScript interface for FCM bridge
+        webView.addJavascriptInterface(new WebAppInterface(this), "LCBNative");
 
         // Handle navigation inside the app
         webView.setWebViewClient(new WebViewClient() {
@@ -88,8 +99,56 @@ public class MainActivity extends Activity {
             }
         });
 
-        webView.loadUrl(APP_URL);
+        // Request notification permission (Android 13+)
+        requestNotificationPermission();
+
+        // Initialize FCM token
+        initFCMToken();
+
+        // Load URL — handle deep link from notification if present
+        String loadUrl = APP_URL;
+        String deepLink = getDeepLinkFromIntent(getIntent());
+        if (deepLink != null) {
+            loadUrl = APP_URL + deepLink;
+        }
+
+        webView.loadUrl(loadUrl);
         setContentView(webView);
+    }
+
+    private void requestNotificationPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS)
+                    != PackageManager.PERMISSION_GRANTED) {
+                requestPermissions(
+                        new String[]{Manifest.permission.POST_NOTIFICATIONS},
+                        NOTIFICATION_PERMISSION_REQUEST
+                );
+            }
+        }
+    }
+
+    private void initFCMToken() {
+        FirebaseMessaging.getInstance().getToken()
+                .addOnSuccessListener(token -> {
+                    SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+                    prefs.edit().putString(FCM_TOKEN_KEY, token).apply();
+                });
+    }
+
+    private String getDeepLinkFromIntent(Intent intent) {
+        if (intent == null) return null;
+        return intent.getStringExtra("deep_link");
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);
+        String deepLink = getDeepLinkFromIntent(intent);
+        if (deepLink != null && webView != null) {
+            webView.loadUrl(APP_URL + deepLink);
+        }
     }
 
     @Override

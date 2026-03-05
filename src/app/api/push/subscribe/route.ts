@@ -12,19 +12,34 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
     }
 
-    const { endpoint, p256dh, auth } = await request.json();
+    const { endpoint, p256dh, auth, type } = await request.json();
+    const subType = type === "fcm" ? "fcm" : "web";
 
-    if (!endpoint || !p256dh || !auth) {
+    if (!endpoint) {
       return NextResponse.json(
         { error: "Champs requis manquants" },
         { status: 400 },
       );
     }
 
+    // Web Push requires p256dh + auth; FCM only needs the token as endpoint
+    if (subType === "web" && (!p256dh || !auth)) {
+      return NextResponse.json(
+        { error: "Champs requis manquants (web push)" },
+        { status: 400 },
+      );
+    }
+
     const service = await createServiceClient();
     await service.from("lcb_push_subscriptions").upsert(
-      { user_id: user.id, endpoint, p256dh, auth },
-      { onConflict: "user_id,endpoint", ignoreDuplicates: true },
+      {
+        user_id: user.id,
+        endpoint,
+        p256dh: p256dh || "",
+        auth: auth || "",
+        type: subType,
+      },
+      { onConflict: "user_id,endpoint", ignoreDuplicates: false },
     );
 
     return NextResponse.json({ ok: true });

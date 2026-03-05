@@ -727,6 +727,7 @@ export type Database = {
           endpoint: string;
           p256dh: string;
           auth: string;
+          type: "web" | "fcm";
           created_at: string;
         };
         Insert: {
@@ -735,6 +736,7 @@ export type Database = {
           endpoint: string;
           p256dh: string;
           auth: string;
+          type?: "web" | "fcm";
           created_at?: string;
         };
         Update: {
@@ -743,6 +745,7 @@ export type Database = {
           endpoint?: string;
           p256dh?: string;
           auth?: string;
+          type?: "web" | "fcm";
           created_at?: string;
         };
         Relationships: [];
