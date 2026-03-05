@@ -16,27 +16,43 @@ export function PushManager() {
 
   useEffect(() => {
     if (subscribed.current) return;
-    if (!("serviceWorker" in navigator) || !("PushManager" in window)) return;
+
+    const hasSW = "serviceWorker" in navigator;
+    const hasPush = "PushManager" in window;
+    const hasNotif = "Notification" in window;
+    console.log("[Push] Support check:", { hasSW, hasPush, hasNotif });
+
+    if (!hasSW || !hasPush) {
+      console.log("[Push] Not supported — skipping");
+      return;
+    }
 
     const vapidKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+    console.log("[Push] VAPID key present:", !!vapidKey);
     if (!vapidKey) return;
 
     (async () => {
       try {
         const registration = await navigator.serviceWorker.ready;
+        console.log("[Push] SW ready");
+
         const existing = await registration.pushManager.getSubscription();
         if (existing) {
+          console.log("[Push] Already subscribed");
           subscribed.current = true;
           return;
         }
 
+        console.log("[Push] Requesting permission...");
         const permission = await Notification.requestPermission();
+        console.log("[Push] Permission:", permission);
         if (permission !== "granted") return;
 
         const subscription = await registration.pushManager.subscribe({
           userVisibleOnly: true,
           applicationServerKey: urlBase64ToUint8Array(vapidKey),
         });
+        console.log("[Push] Subscribed:", subscription.endpoint);
 
         const json = subscription.toJSON();
         await fetch("/api/push/subscribe", {
@@ -49,9 +65,10 @@ export function PushManager() {
           }),
         });
 
+        console.log("[Push] Subscription saved to server");
         subscribed.current = true;
-      } catch {
-        // Silent — push is best-effort
+      } catch (err) {
+        console.error("[Push] Error:", err);
       }
     })();
   }, []);
