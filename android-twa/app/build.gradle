@@ -10,17 +10,8 @@ android {
         applicationId "app.swipego.lcbconnect"
         minSdk 24
         targetSdk 34
-        versionCode 1
-        versionName "1.0.0"
-
-        // TWA configuration
-        manifestPlaceholders = [
-            hostName    : "lcbconnect.swipego.app",
-            defaultUrl  : "https://lcbconnect.swipego.app",
-            launcherName: "LCBconnect",
-            assetStatements: '[{"relation": ["delegate_permission/common.handle_all_urls"],' +
-                '"target": {"namespace": "web", "site": "https://lcbconnect.swipego.app"}}]'
-        ]
+        versionCode 2
+        versionName "1.1.0"
     }
 
     signingConfigs {
@@ -49,5 +40,4 @@ android {
 }
 
 dependencies {
-    implementation 'com.google.androidbrowserhelper:androidbrowserhelper:2.5.0'
 }
