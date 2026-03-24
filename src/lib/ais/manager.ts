@@ -114,6 +114,8 @@ export interface VesselData {
 
 type Listener = (vessel: VesselData) => void;
 
+const MAX_VESSELS = 500;
+
 class AISManager {
   private vessels = new Map<number, VesselData>();
   private shipTypes = new Map<number, number>();
@@ -228,6 +230,19 @@ class AISManager {
 
         this.vessels.set(vessel.mmsi, vessel);
 
+        // Evict oldest vessels if cache exceeds limit
+        if (this.vessels.size > MAX_VESSELS) {
+          let oldest: { mmsi: number; time: number } | null = null;
+          for (const [mmsi, v] of this.vessels) {
+            const t = new Date(v.timestamp).getTime();
+            if (!oldest || t < oldest.time) oldest = { mmsi, time: t };
+          }
+          if (oldest) {
+            this.vessels.delete(oldest.mmsi);
+            this.shipTypes.delete(oldest.mmsi);
+          }
+        }
+
         // Notify all listeners
         for (const listener of this.listeners) {
           try {
@@ -263,7 +278,7 @@ class AISManager {
   }
 
   /** Purge vessels not updated in the last N minutes */
-  startPurge(intervalMs = 60_000, maxAgeMs = 30 * 60_000) {
+  startPurge(intervalMs = 60_000, maxAgeMs = 10 * 60_000) {
     setInterval(() => {
       const now = Date.now();
       let purged = 0;
